@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "Vector3.h"
+
 struct SDL_Window;
 struct SDL_Surface;
 
@@ -28,6 +30,8 @@ namespace dae
 
 		SDL_Surface* m_pBuffer{};
 		uint32_t* m_pBufferPixels{};
+
+		Vector3 GetRayDirection(int px, int py, float ar) const;
 
 		int m_Width{};
 		int m_Height{};

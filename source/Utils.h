@@ -12,9 +12,47 @@ namespace dae
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W1
-			assert(false && "No Implemented Yet!");
-			return false;
+			hitRecord.didHit = false;
+
+			// We calculate the Camera ray.
+			const Vector3 cameraRayUnit{ ray.direction };
+
+			// We calculate the vector between the sphere and camera (defaulted at 0,0,0)
+			const Vector3 cameraSphere{sphere.origin - ray.origin };
+
+			// We get the length of projecting the sphere center on our ray
+			const float projectedSphereCenterLength{Vector3::Dot(cameraSphere, cameraRayUnit)};
+
+			// We get the point of our projection
+			const Vector3 projectedSphereCenterPoint{cameraRayUnit * projectedSphereCenterLength};
+
+			// If our projected length is bigger than the sphere we can conclude it didn't hit.
+			if ((projectedSphereCenterPoint - cameraSphere).Magnitude() > sphere.radius)
+			{
+				hitRecord.didHit = false;
+				return false;
+			}
+
+			// We calculate the distance from the circle center to the projected center on the ray
+			// through pythagorean theorem
+			const float projectedCircleCenterToCircleCenterLength{sqrtf(Square(cameraSphere.Magnitude()) - Square(projectedSphereCenterLength))};
+
+			// We calculate the difference between the hit and the projected center.
+			const float sphereBorderToSphereCenterLength{sqrtf(Square(sphere.radius) - Square(projectedCircleCenterToCircleCenterLength))};
+
+			// We get the distance from the camera to the hit.
+			const float hitCircleLength{ projectedSphereCenterLength - sphereBorderToSphereCenterLength };
+
+			// We get our hit position by multiplying the unit ray vector with the length.
+			const Vector3 hitPosition{ cameraRayUnit * hitCircleLength + ray.origin };
+
+			hitRecord.didHit = true;
+			hitRecord.t = hitCircleLength;
+			hitRecord.origin = hitPosition;
+			hitRecord.normal = hitPosition.Normalized();
+			hitRecord.materialIndex = sphere.materialIndex;
+
+			return hitRecord.didHit;
 		}
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray)
@@ -27,8 +65,19 @@ namespace dae
 		//PLANE HIT-TESTS
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W1
-			assert(false && "No Implemented Yet!");
+			const float t = Vector3::Dot(Vector3{ ray.origin, plane.origin }, plane.normal) / Vector3::Dot(ray.direction, plane.normal);
+
+			if (t >= ray.min && t <= ray.max)
+			{
+				hitRecord.didHit = true;
+				hitRecord.t = t;
+				hitRecord.materialIndex = plane.materialIndex;
+				hitRecord.normal = plane.normal;
+				hitRecord.origin = ray.origin + t * ray.direction;
+				return true;
+			}
+
+			hitRecord.didHit = false;
 			return false;
 		}
 

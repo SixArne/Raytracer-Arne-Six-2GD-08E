@@ -4,6 +4,9 @@
 
 //Project includes
 #include "Renderer.h"
+
+#include <iostream>
+
 #include "Math.h"
 #include "Matrix.h"
 #include "Material.h"
@@ -27,15 +30,29 @@ void Renderer::Render(Scene* pScene) const
 	auto& materials = pScene->GetMaterials();
 	auto& lights = pScene->GetLights();
 
+	const float ar{ (static_cast<float>(m_Width) / static_cast<float>(m_Height)) };
+
 	for (int px{}; px < m_Width; ++px)
 	{
 		for (int py{}; py < m_Height; ++py)
 		{
-			float gradient = px / static_cast<float>(m_Width);
-			gradient += py / static_cast<float>(m_Width);
-			gradient /= 2.0f;
+			// Calculate the hitRay from the camera
+			Vector3 rayDirection{GetRayDirection(px, py, ar)};
+			Ray hitRay{ camera.origin, rayDirection };
 
-			ColorRGB finalColor{ gradient, gradient, gradient };
+			// Color to write to the color buffer
+			ColorRGB finalColor{};
+
+			// HitRecord containing info about hit
+			HitRecord closestHit{};
+
+			pScene->GetClosestHit(hitRay, closestHit); 
+
+			if (closestHit.didHit)
+			{
+				const float scaled_t = 1.f- (closestHit.t / 175.f);
+				finalColor = materials[closestHit.materialIndex]->Shade() * ColorRGB{ scaled_t, scaled_t, scaled_t };
+			}
 
 			//Update Color in Buffer
 			finalColor.MaxToOne();
@@ -55,4 +72,20 @@ void Renderer::Render(Scene* pScene) const
 bool Renderer::SaveBufferToImage() const
 {
 	return SDL_SaveBMP(m_pBuffer, "RayTracing_Buffer.bmp");
+}
+
+Vector3 Renderer::GetRayDirection(int px, int py, float ar) const
+{
+	float cx{
+		(2 * (static_cast<float>(px) + 0.5f) / static_cast<float>(m_Width) - 1.f) * ar
+	};
+
+	float cy{
+		(1.f - (2 * static_cast<float>(py)) / static_cast<float>(m_Height))
+	};
+
+	Vector3 rayDirection{ cx, cy, 1.f };
+	rayDirection.Normalize();
+
+	return rayDirection;
 }

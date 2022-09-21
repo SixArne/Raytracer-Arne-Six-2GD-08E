@@ -28,8 +28,33 @@ namespace dae {
 
 	void dae::Scene::GetClosestHit(const Ray& ray, HitRecord& closestHit) const
 	{
-		//todo W1
-		assert(false && "No Implemented Yet!");
+		const std::vector<Sphere>& spheres = GetSphereGeometries();
+		const std::vector<Plane>& planes = GetPlaneGeometries();
+
+		// We will pass record into the test functions.
+		HitRecord record{};
+
+		for (auto& sphere: spheres)
+		{
+			GeometryUtils::HitTest_Sphere(sphere, ray, record);
+
+			// Only update the closest if a new result is closer than the previous one.
+			// This will ensure only the closest one is kept.
+			if (record.didHit && record.t < closestHit.t)
+			{
+				closestHit = record;
+			}
+		}
+
+		for (auto& plane: planes)
+		{
+			GeometryUtils::HitTest_Plane(plane, ray, record);
+
+			if (record.didHit && record.t < closestHit.t)
+			{
+				closestHit = record;
+			}
+		}
 	}
 
 	bool Scene::DoesHit(const Ray& ray) const
@@ -116,8 +141,8 @@ namespace dae {
 		const unsigned char matId_Solid_Magenta = AddMaterial(new Material_SolidColor{ colors::Magenta });
 
 		//Spheres
-		AddSphere({ -25.f, 0.f, 100.f }, 50.f, matId_Solid_Red);
 		AddSphere({ 25.f, 0.f, 100.f }, 50.f, matId_Solid_Blue);
+		AddSphere({ -25.f, 0.f, 100.f }, 50.f, matId_Solid_Red);
 
 		//Plane
 		AddPlane({ -75.f, 0.f, 0.f }, { 1.f, 0.f,0.f }, matId_Solid_Green);
@@ -125,6 +150,38 @@ namespace dae {
 		AddPlane({ 0.f, -75.f, 0.f }, { 0.f, 1.f,0.f }, matId_Solid_Yellow);
 		AddPlane({ 0.f, 75.f, 0.f }, { 0.f, -1.f,0.f }, matId_Solid_Yellow);
 		AddPlane({ 0.f, 0.f, 125.f }, { 0.f, 0.f,-1.f }, matId_Solid_Magenta);
+	}
+#pragma endregion
+
+#pragma region SCENE W2
+	void Scene_W2::Initialize()
+	{
+		m_Camera.origin = { 0.f, 3.f, -9.f };
+		m_Camera.fovAngle = 45.0f;
+
+		constexpr unsigned char matId_Solid_Red = 0;
+		const unsigned char matId_Solid_Blue = AddMaterial(new Material_SolidColor{ colors::Blue });
+
+		const unsigned char matId_Solid_Yellow = AddMaterial(new Material_SolidColor{ colors::Yellow });
+		const unsigned char matId_Solid_Green = AddMaterial(new Material_SolidColor{ colors::Green });
+		const unsigned char matId_Solid_Magenta = AddMaterial(new Material_SolidColor{ colors::Magenta });
+
+		//Plane
+		AddPlane({ -5.f, 0.f, 0.f }, { 1.f, 0.f,0.f }, matId_Solid_Green);
+		AddPlane({ 5.f, 0.f, 0.f }, { -1.f, 0.f,0.f }, matId_Solid_Green);
+		AddPlane({ 0.f, 0.f, 0.f }, { 0.f, 1.f,0.f }, matId_Solid_Yellow);
+		AddPlane({ 0.f, 10.f, 0.f }, { 0.f, -1.f,0.f }, matId_Solid_Yellow);
+		AddPlane({ 0.f, 0.f, 10.f }, { 0.f, 0.f,-1.f }, matId_Solid_Magenta);
+
+		//Spheres
+		AddSphere({ -1.75f, 1.f, 0.f }, .75f, matId_Solid_Red);
+		AddSphere({ 0.f, 1.f, 0.f }, .75f, matId_Solid_Blue);
+		AddSphere({ 1.75f, 1.f, 0.f }, .75f, matId_Solid_Red);
+		AddSphere({ -1.75f, 3.f, 0.f }, .75f, matId_Solid_Blue);
+		AddSphere({ 0.f, 3.f, 0.f }, .75f, matId_Solid_Red);
+		AddSphere({ 1.75f, 3.f, 0.f }, .75f, matId_Solid_Blue);
+
+		AddPointLight({ 0.f, 5.f, -5.f }, 70.f, colors::White);
 	}
 #pragma endregion
 }
