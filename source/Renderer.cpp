@@ -31,14 +31,19 @@ void Renderer::Render(Scene* pScene) const
 	auto& lights = pScene->GetLights();
 
 	const float ar{ (static_cast<float>(m_Width) / static_cast<float>(m_Height)) };
+	camera.CalculateCameraToWorld();
 
 	for (int px{}; px < m_Width; ++px)
 	{
+		const float cx = ((2 * (px + 0.5f)) / (float)m_Width - 1) * ar * camera.fov;
+
 		for (int py{}; py < m_Height; ++py)
 		{
-			// Calculate the hitRay from the camera
-			Vector3 rayDirection{GetRayDirection(px, py, ar)};
-			Ray hitRay{ camera.origin, rayDirection };
+			const float cy = (1 - (2 * (py + 0.5f)) / (float)m_Height) * camera.fov;
+
+			const Vector3 rayDirection = camera.cameraToWorld.TransformVector(Vector3(cx, cy, 1.f)).Normalized();
+			const Ray hitRay = Ray{ camera.origin, rayDirection };
+
 
 			// Color to write to the color buffer
 			ColorRGB finalColor{};
@@ -50,8 +55,8 @@ void Renderer::Render(Scene* pScene) const
 
 			if (closestHit.didHit)
 			{
-				const float scaled_t = 1.f- (closestHit.t / 175.f);
-				finalColor = materials[closestHit.materialIndex]->Shade() * ColorRGB{ scaled_t, scaled_t, scaled_t };
+				//const float scaled_t = 1.f- (closestHit.t / 175.f);
+				finalColor = materials[closestHit.materialIndex]->Shade();// *ColorRGB{ scaled_t, scaled_t, scaled_t };
 			}
 
 			//Update Color in Buffer
@@ -72,20 +77,4 @@ void Renderer::Render(Scene* pScene) const
 bool Renderer::SaveBufferToImage() const
 {
 	return SDL_SaveBMP(m_pBuffer, "RayTracing_Buffer.bmp");
-}
-
-Vector3 Renderer::GetRayDirection(int px, int py, float ar) const
-{
-	float cx{
-		(2 * (static_cast<float>(px) + 0.5f) / static_cast<float>(m_Width) - 1.f) * ar
-	};
-
-	float cy{
-		(1.f - (2 * static_cast<float>(py)) / static_cast<float>(m_Height))
-	};
-
-	Vector3 rayDirection{ cx, cy, 1.f };
-	rayDirection.Normalize();
-
-	return rayDirection;
 }

@@ -31,7 +31,7 @@ namespace dae
 		SDL_Surface* m_pBuffer{};
 		uint32_t* m_pBufferPixels{};
 
-		Vector3 GetRayDirection(int px, int py, float ar) const;
+		Vector3 GetRayDirection(int px, int py, float ar, float fov) const;
 
 		int m_Width{};
 		int m_Height{};

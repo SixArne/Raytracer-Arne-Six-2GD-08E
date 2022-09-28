@@ -43,16 +43,54 @@ namespace dae
 			// We get the distance from the camera to the hit.
 			const float hitCircleLength{ projectedSphereCenterLength - sphereBorderToSphereCenterLength };
 
+			if (hitCircleLength <= ray.min || hitCircleLength >= ray.max)
+			{
+				hitRecord.didHit = false;
+				return false;
+			}
+
 			// We get our hit position by multiplying the unit ray vector with the length.
 			const Vector3 hitPosition{ cameraRayUnit * hitCircleLength + ray.origin };
 
 			hitRecord.didHit = true;
 			hitRecord.t = hitCircleLength;
 			hitRecord.origin = hitPosition;
+			//TODO: shadow issues
 			hitRecord.normal = hitPosition.Normalized();
 			hitRecord.materialIndex = sphere.materialIndex;
 
 			return hitRecord.didHit;
+
+			//Vector3 rayOriginToSphereOrigin{ sphere.origin - ray.origin };
+			//float hypothenuse{ rayOriginToSphereOrigin.Magnitude() };
+			//float side1{ Vector3::Dot(rayOriginToSphereOrigin, ray.direction) };
+
+			//float distanceToRaySquared = hypothenuse * hypothenuse - side1 * side1;
+
+			////if the distance to the ray is larger than the radius there will be no results
+			////    also if equal because that is the exact border of the circle
+			//if (sqrt(distanceToRaySquared) >= sphere.radius) {
+			//	hitRecord.didHit = false;
+			//	return false;
+			//}
+
+			//float distanceRaypointToIntersect = sqrt(sphere.radius * sphere.radius - distanceToRaySquared);
+			//float t = side1 - distanceRaypointToIntersect;
+
+			//if (t < ray.min || t > ray.max) {
+			//	hitRecord.didHit = false;
+			//	return false;
+			//}
+
+			//hitRecord.didHit = true;
+			//if (ignoreHitRecord) {
+			//	return true;
+			//}
+			//hitRecord.materialIndex = sphere.materialIndex;
+			//hitRecord.t = t;
+			//hitRecord.origin = ray.origin + t * ray.direction;
+			//hitRecord.normal = Vector3(sphere.origin, hitRecord.origin).Normalized();
+			//return true;
 		}
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray)
