@@ -59,8 +59,31 @@ namespace dae {
 
 	bool Scene::DoesHit(const Ray& ray) const
 	{
-		//todo W3
-		assert(false && "No Implemented Yet!");
+		const std::vector<Sphere>& spheres = GetSphereGeometries();
+		const std::vector<Plane>& planes = GetPlaneGeometries();
+
+		for (auto& sphere : spheres)
+		{
+			bool hasHit = GeometryUtils::HitTest_Sphere(sphere, ray);
+
+			// Only update the closest if a new result is closer than the previous one.
+			// This will ensure only the closest one is kept.
+			if (hasHit)
+			{
+				return true;
+			}
+		}
+
+		for (auto& plane : planes)
+		{
+			bool hasHit = GeometryUtils::HitTest_Plane(plane, ray);
+
+			if (hasHit)
+			{
+				return true;
+			}
+		}
+
 		return false;
 	}
 

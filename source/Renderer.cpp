@@ -51,12 +51,27 @@ void Renderer::Render(Scene* pScene) const
 			// HitRecord containing info about hit
 			HitRecord closestHit{};
 
-			pScene->GetClosestHit(hitRay, closestHit); 
+			pScene->GetClosestHit(hitRay, closestHit);
 
 			if (closestHit.didHit)
 			{
-				//const float scaled_t = 1.f- (closestHit.t / 175.f);
-				finalColor = materials[closestHit.materialIndex]->Shade();// *ColorRGB{ scaled_t, scaled_t, scaled_t };
+				finalColor = materials[closestHit.materialIndex]->Shade();
+				constexpr float minLightRay{ 0.0001f };
+				constexpr float shadowMultiplier{0.5f};
+
+				const Vector3 displacedHitOrigin = closestHit.origin + closestHit.normal * minLightRay;
+
+				for (const Light& light : lights)
+				{
+					Vector3 directionToLight = LightUtils::GetDirectionToLight(light, displacedHitOrigin);
+					const float distance = directionToLight.Normalize();
+					const Ray invLightRay = Ray{ displacedHitOrigin, directionToLight, minLightRay, distance};
+
+					if (pScene->DoesHit(invLightRay))
+					{
+						finalColor *= shadowMultiplier;
+					}
+				}
 			}
 
 			//Update Color in Buffer

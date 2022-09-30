@@ -55,8 +55,7 @@ namespace dae
 			hitRecord.didHit = true;
 			hitRecord.t = hitCircleLength;
 			hitRecord.origin = hitPosition;
-			//TODO: shadow issues
-			hitRecord.normal = hitPosition.Normalized();
+			hitRecord.normal = (hitPosition - sphere.origin).Normalized();
 			hitRecord.materialIndex = sphere.materialIndex;
 
 			return hitRecord.didHit;
@@ -162,8 +161,9 @@ namespace dae
 		inline Vector3 GetDirectionToLight(const Light& light, const Vector3 origin)
 		{
 			//todo W3
-			assert(false && "No Implemented Yet!");
-			return {};
+			Vector3 originLight = light.origin - origin;
+
+			return originLight;
 		}
 
 		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)
