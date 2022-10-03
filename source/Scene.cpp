@@ -36,11 +36,11 @@ namespace dae {
 
 		for (auto& sphere: spheres)
 		{
-			GeometryUtils::HitTest_Sphere(sphere, ray, record);
+			const bool hasHit = GeometryUtils::HitTest_Sphere(sphere, ray, record);
 
 			// Only update the closest if a new result is closer than the previous one.
 			// This will ensure only the closest one is kept.
-			if (record.didHit && record.t < closestHit.t)
+			if (hasHit && record.t < closestHit.t)
 			{
 				closestHit = record;
 			}
@@ -48,9 +48,9 @@ namespace dae {
 
 		for (auto& plane: planes)
 		{
-			GeometryUtils::HitTest_Plane(plane, ray, record);
+			const bool hasHit = GeometryUtils::HitTest_Plane(plane, ray, record);
 
-			if (record.didHit && record.t < closestHit.t)
+			if (hasHit && record.t < closestHit.t)
 			{
 				closestHit = record;
 			}
@@ -64,7 +64,7 @@ namespace dae {
 
 		for (auto& sphere : spheres)
 		{
-			bool hasHit = GeometryUtils::HitTest_Sphere(sphere, ray);
+			const bool hasHit = GeometryUtils::HitTest_Sphere(sphere, ray);
 
 			// Only update the closest if a new result is closer than the previous one.
 			// This will ensure only the closest one is kept.
@@ -76,7 +76,7 @@ namespace dae {
 
 		for (auto& plane : planes)
 		{
-			bool hasHit = GeometryUtils::HitTest_Plane(plane, ray);
+			const bool hasHit = GeometryUtils::HitTest_Plane(plane, ray);
 
 			if (hasHit)
 			{

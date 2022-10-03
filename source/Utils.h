@@ -12,84 +12,40 @@ namespace dae
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			hitRecord.didHit = false;
-
-			// We calculate the Camera ray.
-			const Vector3 cameraRayUnit{ ray.direction };
-
 			// We calculate the vector between the sphere and camera (defaulted at 0,0,0)
-			const Vector3 cameraSphere{sphere.origin - ray.origin };
+			const Vector3 rayOriginToCameraSphere{sphere.origin - ray.origin };
 
+			// This will be our hypotenuse
+			const float cameraSphereLengthSquared = rayOriginToCameraSphere.SqrMagnitude();
 			// We get the length of projecting the sphere center on our ray
-			const float projectedSphereCenterLength{Vector3::Dot(cameraSphere, cameraRayUnit)};
+			const float projectedSphereCenterLength{Vector3::Dot(rayOriginToCameraSphere, ray.direction)};
 
-			// We get the point of our projection
-			const Vector3 projectedSphereCenterPoint{cameraRayUnit * projectedSphereCenterLength};
+			const float distanceToProjectedPointSquared = cameraSphereLengthSquared - projectedSphereCenterLength * projectedSphereCenterLength;
 
 			// If our projected length is bigger than the sphere we can conclude it didn't hit.
-			if ((projectedSphereCenterPoint - cameraSphere).SqrMagnitude() > sphere.radius * sphere.radius)
+			if (distanceToProjectedPointSquared >= sphere.radius * sphere.radius)
 			{
-				hitRecord.didHit = false;
 				return false;
 			}
 
-			// We calculate the distance from the circle center to the projected center on the ray
-			// through pythagorean theorem
-			const float projectedCircleCenterToCircleCenterLength{sqrtf(Square(cameraSphere.Magnitude()) - Square(projectedSphereCenterLength))};
+			const float distanceToIntersection = std::sqrtf( sphere.radius * sphere.radius - distanceToProjectedPointSquared);
+			const float t = projectedSphereCenterLength - distanceToIntersection;
 
-			// We calculate the difference between the hit and the projected center.
-			const float sphereBorderToSphereCenterLength{sqrtf(Square(sphere.radius) - Square(projectedCircleCenterToCircleCenterLength))};
-
-			// We get the distance from the camera to the hit.
-			const float hitCircleLength{ projectedSphereCenterLength - sphereBorderToSphereCenterLength };
-
-			if (hitCircleLength <= ray.min || hitCircleLength >= ray.max)
+			if (t < ray.min || t > ray.max)
 			{
-				hitRecord.didHit = false;
 				return false;
 			}
-
-			// We get our hit position by multiplying the unit ray vector with the length.
-			const Vector3 hitPosition{ cameraRayUnit * hitCircleLength + ray.origin };
 
 			hitRecord.didHit = true;
-			hitRecord.t = hitCircleLength;
-			hitRecord.origin = hitPosition;
-			hitRecord.normal = (hitPosition - sphere.origin).Normalized();
+
+			if (ignoreHitRecord)
+				return true;
+			
 			hitRecord.materialIndex = sphere.materialIndex;
-
-			return hitRecord.didHit;
-
-			//Vector3 rayOriginToSphereOrigin{ sphere.origin - ray.origin };
-			//float hypothenuse{ rayOriginToSphereOrigin.Magnitude() };
-			//float side1{ Vector3::Dot(rayOriginToSphereOrigin, ray.direction) };
-
-			//float distanceToRaySquared = hypothenuse * hypothenuse - side1 * side1;
-
-			////if the distance to the ray is larger than the radius there will be no results
-			////    also if equal because that is the exact border of the circle
-			//if (sqrt(distanceToRaySquared) >= sphere.radius) {
-			//	hitRecord.didHit = false;
-			//	return false;
-			//}
-
-			//float distanceRaypointToIntersect = sqrt(sphere.radius * sphere.radius - distanceToRaySquared);
-			//float t = side1 - distanceRaypointToIntersect;
-
-			//if (t < ray.min || t > ray.max) {
-			//	hitRecord.didHit = false;
-			//	return false;
-			//}
-
-			//hitRecord.didHit = true;
-			//if (ignoreHitRecord) {
-			//	return true;
-			//}
-			//hitRecord.materialIndex = sphere.materialIndex;
-			//hitRecord.t = t;
-			//hitRecord.origin = ray.origin + t * ray.direction;
-			//hitRecord.normal = Vector3(sphere.origin, hitRecord.origin).Normalized();
-			//return true;
+			hitRecord.t = t;
+			hitRecord.origin = ray.origin + t * ray.direction;
+			hitRecord.normal = Vector3(sphere.origin, hitRecord.origin).Normalized();
+			return true;
 		}
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray)
@@ -107,6 +63,9 @@ namespace dae
 			if (t >= ray.min && t <= ray.max)
 			{
 				hitRecord.didHit = true;
+				if (ignoreHitRecord)
+					return true;
+
 				hitRecord.t = t;
 				hitRecord.materialIndex = plane.materialIndex;
 				hitRecord.normal = plane.normal;

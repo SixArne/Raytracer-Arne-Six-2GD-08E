@@ -5,8 +5,6 @@
 //Project includes
 #include "Renderer.h"
 
-#include <iostream>
-
 #include "Math.h"
 #include "Matrix.h"
 #include "Material.h"
@@ -26,12 +24,11 @@ Renderer::Renderer(SDL_Window * pWindow) :
 
 void Renderer::Render(Scene* pScene) const
 {
-	Camera& camera = pScene->GetCamera();
+	const Camera& camera = pScene->GetCamera();
 	auto& materials = pScene->GetMaterials();
 	auto& lights = pScene->GetLights();
 
 	const float ar{ (static_cast<float>(m_Width) / static_cast<float>(m_Height)) };
-	camera.CalculateCameraToWorld();
 
 	for (int px{}; px < m_Width; ++px)
 	{
@@ -55,7 +52,7 @@ void Renderer::Render(Scene* pScene) const
 			if (closestHit.didHit)
 			{
 				finalColor = materials[closestHit.materialIndex]->Shade();
-				constexpr float minLightRay{ 0.0001f };
+				constexpr float minLightRay{ 0.001f };
 				constexpr float shadowMultiplier{0.5f};
 
 				const Vector3 displacedHitOrigin = closestHit.origin + closestHit.normal * minLightRay;

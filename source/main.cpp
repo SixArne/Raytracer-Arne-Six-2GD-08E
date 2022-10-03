@@ -28,7 +28,7 @@ int main(int argc, char* args[])
 
 	//Create window + surfaces
 	SDL_Init(SDL_INIT_VIDEO);
-	SDL_SetRelativeMouseMode(SDL_TRUE);
+	SDL_SetRelativeMouseMode(SDL_FALSE);
 
 	const uint32_t width = 640;
 	const uint32_t height = 480;

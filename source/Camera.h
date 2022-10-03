@@ -33,16 +33,22 @@ namespace dae
 		Vector3 up{ Vector3::UnitY };
 		Vector3 right{ Vector3::UnitX };
 
-		float totalPitch{ 0.f };
-		float totalYaw{ 0.f };
+		float totalPitch{ 90.f };
+		float totalYaw{ 90.f };
 
 		Matrix cameraToWorld{};
 
 		Matrix CalculateCameraToWorld()
 		{
-			/*Matrix rotation{Matrix::CreateRotationY(totalYaw * TO_RADIANS)};
+			// inverse pitch to make the pitch variable itself more reasonable
+			const Matrix rotation{ Matrix::CreateRotationX(-totalPitch * TO_RADIANS) * Matrix::CreateRotationY(totalYaw * TO_RADIANS) };
+
+			/*forward = rotation.TransformVector(Vector3::UnitZ).Normalized();
+			right = Vector3::Cross(Vector3::UnitY, forward).Normalized();
+			up = Vector3::Cross(forward, right).Normalized();*/
+
 			forward = rotation.GetAxisZ();
-			right = rotation.GetAxisX();
+			right = rotation.GetTranslation();
 			up = rotation.GetAxisY();
 
 			cameraToWorld = {
@@ -52,31 +58,7 @@ namespace dae
 				Vector4{origin, 1},
 			};
 
-			return cameraToWorld;*/
-
-			right = Vector3::Cross(Vector3::UnitY, forward).Normalized();
-			up = Vector3::Cross(forward, right).Normalized();
-
-			cameraToWorld = {
-				Vector4{right, 0},
-				Vector4{up, 0},
-				Vector4{forward, 0},
-				Vector4{origin, 1},
-			};
-
 			return cameraToWorld;
-
-			/*const Vector3 rightV = Vector3::Cross(Vector3::UnitY, forward);
-			const Vector3 upV = Vector3::Cross(forward, right);
-
-			cameraToWorld = {
-				Vector4{rightV.x, rightV.y, rightV.z, 0},
-				Vector4{upV.x, upV.y, upV.z, 0},
-				Vector4{forward.x, forward.y, forward.z, 0},
-				Vector4{origin, 1},
-			};
-
-			return cameraToWorld;*/
 		}
 
 		void Update(Timer* pTimer)
@@ -147,10 +129,10 @@ namespace dae
 					//rotate yaw
 					totalYaw += mouseX;
 					//rotate pitch
-					totalPitch += mouseY;
+					totalPitch = Clamp(30.f, 150.f, totalPitch + mouseY);
 
-					Matrix rotation{ Matrix::CreateRotationX(totalPitch * TO_RADIANS) * Matrix::CreateRotationY(totalYaw * TO_RADIANS) };
-					forward = rotation.TransformVector(Vector3::UnitZ).Normalized();
+					// Recalculate view matrix
+					CalculateCameraToWorld();
 				}
 			}
 		}
