@@ -44,7 +44,6 @@ void Renderer::Render(Scene* pScene) const
 			const Vector3 rayDirection = camera.cameraToWorld.TransformVector(Vector3(cx, cy, 1.f)).Normalized();
 			const Ray hitRay = Ray{ camera.origin, rayDirection };
 
-
 			// Color to write to the color buffer
 			ColorRGB finalColor{};
 

@@ -140,56 +140,10 @@ namespace dae
 			int mouseX{}, mouseY{};
 			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
 
-			////Movement forward LMB + MoveY
-			//if (mouseY > 0 && mouseState & SDL_BUTTON_LMASK && !(mouseState & SDL_BUTTON_RMASK))
-			//{
-			//	origin -= forward * moveSpeedPerSecond * deltaTime;
-			//}
-			//else if (mouseY < 0 && mouseState & SDL_BUTTON_LMASK && !(mouseState & SDL_BUTTON_RMASK))
-			//{
-			//	origin += forward * moveSpeedPerSecond * deltaTime;
-			//}
-
-			//// Movement upwards LMB + RMB + mouseY
-			//if (mouseY > 0 && mouseState & SDL_BUTTON_RMASK && mouseState & SDL_BUTTON_LMASK)
-			//{
-			//	origin -= up * moveSpeedPerSecond * deltaTime;
-			//}
-			//else if (mouseY < 0 && mouseState & SDL_BUTTON_RMASK && mouseState & SDL_BUTTON_LMASK)
-			//{
-			//	origin += up * moveSpeedPerSecond * deltaTime;
-			//}
-
-			//// Movement sidewards LMB + RMB + mouseX
-			//if (mouseX > 0 && mouseState & SDL_BUTTON_RMASK && mouseState & SDL_BUTTON_LMASK)
-			//{
-			//	origin += right * moveSpeedPerSecond * deltaTime;
-			//}
-			//else if (mouseX < 0 && mouseState & SDL_BUTTON_RMASK && mouseState & SDL_BUTTON_LMASK)
-			//{
-			//	origin -= right * moveSpeedPerSecond * deltaTime;
-			//}
-
-			// Looking around
-			//if ((mouseX > 0 || mouseX < 0) && mouseState & SDL_BUTTON_LMASK)
-			//{
-			//	totalYaw += deltaTime * turnSpeedPerSecond;
-
-			//	std::cout << "totalYaw: " << totalYaw << "\n";
-			//	//Matrix pitchRotation{Matrix::CreateRotationX((float)mouseX * deltaTime * TO_RADIANS)};
-			//	const Matrix yawRotation{Matrix::CreateRotationY(totalYaw * TO_RADIANS)};
-
-			//	forward = yawRotation.TransformVector(Vector3::UnitZ).Normalized();
-			//	right = Vector3::Cross(Vector3::UnitY, forward).Normalized();
-			//	up = Vector3::Cross(forward, right).Normalized();
-			//}
-
 			if ((mouseState & SDL_BUTTON_RMASK) != 0)
 			{
 				if (!(mouseState & SDL_BUTTON_LMASK) != 0)
 				{
-					std::cout << "FUCK " << "\n";
-
 					//rotate yaw
 					totalYaw += mouseX;
 					//rotate pitch

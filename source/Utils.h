@@ -27,7 +27,7 @@ namespace dae
 			const Vector3 projectedSphereCenterPoint{cameraRayUnit * projectedSphereCenterLength};
 
 			// If our projected length is bigger than the sphere we can conclude it didn't hit.
-			if ((projectedSphereCenterPoint - cameraSphere).Magnitude() > sphere.radius)
+			if ((projectedSphereCenterPoint - cameraSphere).SqrMagnitude() > sphere.radius * sphere.radius)
 			{
 				hitRecord.didHit = false;
 				return false;
