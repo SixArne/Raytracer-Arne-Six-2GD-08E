@@ -119,7 +119,6 @@ namespace dae
 		//Direction from target to light
 		inline Vector3 GetDirectionToLight(const Light& light, const Vector3 origin)
 		{
-			//todo W3
 			Vector3 originLight = light.origin - origin;
 
 			return originLight;
@@ -127,9 +126,10 @@ namespace dae
 
 		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)
 		{
-			//todo W3
-			assert(false && "No Implemented Yet!");
-			return {};
+			// Light intensity
+			//ColorRGB colorRgb = light.color * (light.intensity / (light.origin - target).SqrMagnitude());
+			ColorRGB colorRgb = light.color * (light.intensity / (light.origin - target).SqrMagnitude());
+			return colorRgb;
 		}
 	}
 

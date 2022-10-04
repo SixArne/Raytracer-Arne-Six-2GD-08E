@@ -44,6 +44,7 @@ namespace dae
 		uint32_t* m_pBufferPixels{};
 
 		Vector3 GetRayDirection(int px, int py, float ar, float fov) const;
+		
 
 		bool m_CanRenderShadow{};
 

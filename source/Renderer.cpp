@@ -27,10 +27,8 @@ void Renderer::Render(Scene* pScene) const
 	const Camera& camera = pScene->GetCamera();
 
 	// We can just change these variables instead of reassigning them
-	Ray hitRay{};
 	Ray invLightRay{};
-	ColorRGB finalColor{};
-	Vector3 rayDirection{};
+	
 
 	// lightRay variables
 	constexpr float minLightRay{ 0.001f };
@@ -49,10 +47,11 @@ void Renderer::Render(Scene* pScene) const
 		{
 			const float cy = (1 - (2 * (py + 0.5f)) / (float)m_Height) * camera.fov;
 
-			rayDirection = camera.cameraToWorld.TransformVector(Vector3(cx, cy, 1.f)).Normalized();
-			
-			hitRay.origin = camera.origin;
-			hitRay.direction = rayDirection;
+			const Vector3 rayDirection = camera.cameraToWorld.TransformVector(Vector3(cx, cy, 1.f)).Normalized();
+			const Ray hitRay = Ray{ camera.origin, rayDirection };
+
+			// Color to write to buffer
+			ColorRGB finalColor{};
 
 			// HitRecord containing info about hit
 			HitRecord closestHit{};
@@ -61,15 +60,25 @@ void Renderer::Render(Scene* pScene) const
 
 			if (closestHit.didHit)
 			{
-				finalColor = materials[closestHit.materialIndex]->Shade();
+				//finalColor = materials[closestHit.materialIndex]->Shade();
+				finalColor = ColorRGB{};
 
+				// To shoot our inverse light ray we need to offset it a bit so we don't have self collision.
 				const Vector3 displacedHitOrigin = closestHit.origin + closestHit.normal * minLightRay;
 
 				for (const Light& light : lights)
 				{
+					// Hard shadow calculations
 					Vector3 directionToLight = LightUtils::GetDirectionToLight(light, displacedHitOrigin);
 					const float distance = directionToLight.Normalize();
 					invLightRay = Ray{ displacedHitOrigin, directionToLight, minLightRay, distance};
+
+					float lambertCosine = Vector3::Dot(closestHit.normal, (light.origin - closestHit.origin).Normalized());
+
+					if (lambertCosine > 0)
+					{
+						finalColor += LightUtils::GetRadiance(light, closestHit.origin) * lambertCosine;
+					}
 
 					if (m_CanRenderShadow && pScene->DoesHit(invLightRay))
 					{
@@ -78,7 +87,7 @@ void Renderer::Render(Scene* pScene) const
 				}
 			}
 
-			//Update Color in Buffer
+			// Normalizes the color to avoid overflows
 			finalColor.MaxToOne();
 
 			m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,
