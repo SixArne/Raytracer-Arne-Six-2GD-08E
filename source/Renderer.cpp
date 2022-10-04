@@ -25,6 +25,17 @@ Renderer::Renderer(SDL_Window * pWindow) :
 void Renderer::Render(Scene* pScene) const
 {
 	const Camera& camera = pScene->GetCamera();
+
+	// We can just change these variables instead of reassigning them
+	Ray hitRay{};
+	Ray invLightRay{};
+	ColorRGB finalColor{};
+	Vector3 rayDirection{};
+
+	// lightRay variables
+	constexpr float minLightRay{ 0.001f };
+	constexpr float shadowMultiplier{ 0.5f };
+
 	auto& materials = pScene->GetMaterials();
 	auto& lights = pScene->GetLights();
 
@@ -38,11 +49,10 @@ void Renderer::Render(Scene* pScene) const
 		{
 			const float cy = (1 - (2 * (py + 0.5f)) / (float)m_Height) * camera.fov;
 
-			const Vector3 rayDirection = camera.cameraToWorld.TransformVector(Vector3(cx, cy, 1.f)).Normalized();
-			const Ray hitRay = Ray{ camera.origin, rayDirection };
-
-			// Color to write to the color buffer
-			ColorRGB finalColor{};
+			rayDirection = camera.cameraToWorld.TransformVector(Vector3(cx, cy, 1.f)).Normalized();
+			
+			hitRay.origin = camera.origin;
+			hitRay.direction = rayDirection;
 
 			// HitRecord containing info about hit
 			HitRecord closestHit{};
@@ -52,8 +62,6 @@ void Renderer::Render(Scene* pScene) const
 			if (closestHit.didHit)
 			{
 				finalColor = materials[closestHit.materialIndex]->Shade();
-				constexpr float minLightRay{ 0.001f };
-				constexpr float shadowMultiplier{0.5f};
 
 				const Vector3 displacedHitOrigin = closestHit.origin + closestHit.normal * minLightRay;
 
@@ -61,7 +69,7 @@ void Renderer::Render(Scene* pScene) const
 				{
 					Vector3 directionToLight = LightUtils::GetDirectionToLight(light, displacedHitOrigin);
 					const float distance = directionToLight.Normalize();
-					const Ray invLightRay = Ray{ displacedHitOrigin, directionToLight, minLightRay, distance};
+					invLightRay = Ray{ displacedHitOrigin, directionToLight, minLightRay, distance};
 
 					if (pScene->DoesHit(invLightRay))
 					{

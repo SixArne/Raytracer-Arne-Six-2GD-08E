@@ -23,7 +23,7 @@ namespace dae
 			const float distanceToProjectedPointSquared = cameraSphereLengthSquared - projectedSphereCenterLength * projectedSphereCenterLength;
 
 			// If our projected length is bigger than the sphere we can conclude it didn't hit.
-			if (distanceToProjectedPointSquared >= sphere.radius * sphere.radius)
+			if (distanceToProjectedPointSquared > sphere.radius * sphere.radius)
 			{
 				return false;
 			}
