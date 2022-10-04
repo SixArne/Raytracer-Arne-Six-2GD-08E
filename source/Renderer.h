@@ -24,14 +24,28 @@ namespace dae
 
 		void Render(Scene* pScene) const;
 		bool SaveBufferToImage() const;
+		void CycleLightingMode();
+		void ToggleShadows() { m_CanRenderShadow = !m_CanRenderShadow; }
 
 	private:
+		enum class LightingMode
+		{
+			ObservedArea,
+			Radiance,
+			BRDF,
+			Combined
+		};
+
+		LightingMode m_CurrentLightingMode{LightingMode::Combined};
+
 		SDL_Window* m_pWindow{};
 
 		SDL_Surface* m_pBuffer{};
 		uint32_t* m_pBufferPixels{};
 
 		Vector3 GetRayDirection(int px, int py, float ar, float fov) const;
+
+		bool m_CanRenderShadow{};
 
 		int m_Width{};
 		int m_Height{};

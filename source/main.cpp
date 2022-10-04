@@ -33,6 +33,9 @@ int main(int argc, char* args[])
 	const uint32_t width = 640;
 	const uint32_t height = 480;
 
+	//const uint32_t width = 640 * 0.80f;
+	//const uint32_t height = 480 * 0.80f;
+
 	SDL_Window* pWindow = SDL_CreateWindow(
 		"RayTracer - **Insert Name**",
 		SDL_WINDOWPOS_UNDEFINED,
@@ -69,6 +72,10 @@ int main(int argc, char* args[])
 			case SDL_KEYUP:
 				if(e.key.keysym.scancode == SDL_SCANCODE_X)
 					takeScreenshot = true;
+				if (e.key.keysym.scancode == SDL_SCANCODE_F2)
+					pRenderer->ToggleShadows();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F3)
+					pRenderer->CycleLightingMode();
 				break;
 			}
 		}

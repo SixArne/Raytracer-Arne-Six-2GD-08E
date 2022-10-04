@@ -71,7 +71,7 @@ void Renderer::Render(Scene* pScene) const
 					const float distance = directionToLight.Normalize();
 					invLightRay = Ray{ displacedHitOrigin, directionToLight, minLightRay, distance};
 
-					if (pScene->DoesHit(invLightRay))
+					if (m_CanRenderShadow && pScene->DoesHit(invLightRay))
 					{
 						finalColor *= shadowMultiplier;
 					}
@@ -96,4 +96,26 @@ void Renderer::Render(Scene* pScene) const
 bool Renderer::SaveBufferToImage() const
 {
 	return SDL_SaveBMP(m_pBuffer, "RayTracing_Buffer.bmp");
+}
+
+void Renderer::CycleLightingMode()
+{
+	int modeId = static_cast<int>(m_CurrentLightingMode);
+	m_CurrentLightingMode = static_cast<LightingMode>((++modeId) % 5);
+
+	switch (m_CurrentLightingMode)
+	{
+	case LightingMode::ObservedArea:
+		std::cout << "CYCLE MODE: ObservedArea" << "\n";
+		break;
+	case LightingMode::Radiance:
+		std::cout << "CYCLE MODE: Radiance" << "\n";
+		break;
+	case LightingMode::BRDF:
+		std::cout << "CYCLE MODE: BRDF" << "\n";
+		break;
+	case LightingMode::Combined:
+		std::cout << "CYCLE MODE: Combined" << "\n";
+		break;
+	}
 }
