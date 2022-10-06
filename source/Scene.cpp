@@ -217,17 +217,18 @@ namespace dae {
 		m_Camera.fovAngle = 45.0f;
 
 		// test code
-		constexpr unsigned char matId_Solid_Red = 0;
-		const unsigned char matId_Solid_Blue = AddMaterial(new Material_SolidColor{ colors::Blue });
-		const unsigned char matId_Solid_Yellow = AddMaterial(new Material_SolidColor{ colors::Yellow });
+		const unsigned char matLambert_Red = AddMaterial(new Material_Lambert(colors::Red, 1.f));
+		const unsigned char matLambert_Blue = AddMaterial(new Material_LambertPhong(colors::Blue, 1.f, 1.f, 60.f));
+		const unsigned char matLambert_Yellow = AddMaterial(new Material_Lambert(colors::Yellow, 1.f));
 
-		AddSphere({ -.75f, 1.f, 0.f }, 1.f, matId_Solid_Red);
-		AddSphere({ .75f, 1.f, 0.f }, 1.f, matId_Solid_Blue);
+		AddSphere({ -.75f, 1.f, 0.f }, 1.f, matLambert_Red);
+		AddSphere({ .75f, 1.f, 0.f }, 1.f, matLambert_Blue);
 
-		AddPlane({ 0.f, 0.f, 0.f }, { 0.f, 1.f,0.f }, matId_Solid_Yellow);
+		AddPlane({ 0.f, 0.f, 0.f }, { 0.f, 1.f,0.f }, matLambert_Yellow);
 
 		AddPointLight({ 0.f, 5.f, 5.f }, 25.f, colors::White);
 		AddPointLight({ 0.f, 2.5f, -5.f }, 25.f, colors::White);
+
 
 		//const unsigned char matCT_GrayRoughMetal = AddMaterial(new Material_CookTorrence({.972f, .960f, .915f}, 1.f, 1.f));
 		//const unsigned char matCT_GrayMediumMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, .6f));

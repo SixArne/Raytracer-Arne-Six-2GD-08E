@@ -26,10 +26,6 @@ void Renderer::Render(Scene* pScene) const
 {
 	const Camera& camera = pScene->GetCamera();
 
-	// We can just change these variables instead of reassigning them
-	Ray invLightRay{};
-	
-
 	// lightRay variables
 	constexpr float minLightRay{ 0.001f };
 	constexpr float shadowMultiplier{ 0.5f };
@@ -41,11 +37,11 @@ void Renderer::Render(Scene* pScene) const
 
 	for (int px{}; px < m_Width; ++px)
 	{
-		const float cx = ((2 * (px + 0.5f)) / (float)m_Width - 1) * ar * camera.fov;
+		const float cx = ((2 * (static_cast<float>(px) + 0.5f)) / static_cast<float>(m_Width) - 1) * ar * camera.fov;
 
 		for (int py{}; py < m_Height; ++py)
 		{
-			const float cy = (1 - (2 * (py + 0.5f)) / (float)m_Height) * camera.fov;
+			const float cy = (1 - (2 * (static_cast<float>(py) + 0.5f)) / static_cast<float>(m_Height)) * camera.fov;
 
 			const Vector3 rayDirection = camera.cameraToWorld.TransformVector(Vector3(cx, cy, 1.f)).Normalized();
 			const Ray hitRay = Ray{ camera.origin, rayDirection };
@@ -57,12 +53,8 @@ void Renderer::Render(Scene* pScene) const
 			HitRecord closestHit{};
 
 			pScene->GetClosestHit(hitRay, closestHit);
-
 			if (closestHit.didHit)
 			{
-				//finalColor = materials[closestHit.materialIndex]->Shade();
-				finalColor = ColorRGB{};
-
 				// To shoot our inverse light ray we need to offset it a bit so we don't have self collision.
 				const Vector3 displacedHitOrigin = closestHit.origin + closestHit.normal * minLightRay;
 
@@ -71,20 +63,27 @@ void Renderer::Render(Scene* pScene) const
 					// Hard shadow calculations
 					Vector3 directionToLight = LightUtils::GetDirectionToLight(light, displacedHitOrigin);
 					const float distance = directionToLight.Normalize();
-					invLightRay = Ray{ displacedHitOrigin, directionToLight, minLightRay, distance};
+					Ray invLightRay = Ray{ displacedHitOrigin, directionToLight, minLightRay, distance };
 
-					float lambertCosine = Vector3::Dot(closestHit.normal, (light.origin - closestHit.origin).Normalized());
+					// If a shadow needs to be rendered it skips it
+					if (pScene->DoesHit(invLightRay) && m_CanRenderShadow)
+						continue;
 
-					if (lambertCosine > 0)
-					{
-						finalColor += LightUtils::GetRadiance(light, closestHit.origin) * lambertCosine;
-					}
+					// for every light
+					ColorRGB BRDFrgb = materials[closestHit.materialIndex]->Shade(closestHit, -directionToLight, rayDirection);
 
-					if (m_CanRenderShadow && pScene->DoesHit(invLightRay))
-					{
-						finalColor *= shadowMultiplier;
-					}
+					// Lambert shading
+					const float lambertCosine = Vector3::Dot(closestHit.normal, (directionToLight));
+
+					if (lambertCosine < 0)
+						continue;
+
+					finalColor += LightUtils::GetRadiance(light, closestHit.origin) * BRDFrgb * lambertCosine;
 				}
+			}
+			else
+			{
+				finalColor = ColorRGB{ 1.f, 1.f, 1.f };
 			}
 
 			// Normalizes the color to avoid overflows
