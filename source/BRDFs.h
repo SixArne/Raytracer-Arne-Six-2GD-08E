@@ -18,9 +18,7 @@ namespace dae
 
 		static ColorRGB Lambert(const ColorRGB& kd, const ColorRGB& cd)
 		{
-			//todo: W3
-			assert(false && "Not Implemented Yet");
-			return {};
+			return (cd * kd.r) / PI;
 		}
 
 		/**
@@ -51,9 +49,10 @@ namespace dae
 		 */
 		static ColorRGB FresnelFunction_Schlick(const Vector3& h, const Vector3& v, const ColorRGB& f0)
 		{
-			//todo: W3
-			assert(false && "Not Implemented Yet");
-			return {};
+
+			ColorRGB schlick = f0 + (ColorRGB{ 1.f,1.f,1.f } - f0) * powf(1 - Vector3::Dot(h, v), 5);
+
+			return schlick;
 		}
 
 		/**
@@ -65,9 +64,11 @@ namespace dae
 		 */
 		static float NormalDistribution_GGX(const Vector3& n, const Vector3& h, float roughness)
 		{
-			//todo: W3
-			assert(false && "Not Implemented Yet");
-			return {};
+			auto intermediateResult {(Vector3::Dot(n, h) * Vector3::Dot(n, h)) * (roughness * roughness - 1.f) + 1.f};
+
+			auto normalDistribution = (roughness * roughness) / (float)M_PI * (intermediateResult * intermediateResult);
+
+			return normalDistribution;
 		}
 
 
@@ -80,9 +81,14 @@ namespace dae
 		 */
 		static float GeometryFunction_SchlickGGX(const Vector3& n, const Vector3& v, float roughness)
 		{
-			//todo: W3
-			assert(false && "Not Implemented Yet");
-			return {};
+			float nominator{Vector3::Dot(n, v)};
+			float kNominator = (roughness * roughness) + 1.f;
+			float k = (kNominator * kNominator / 8);
+
+			float denominator{Vector3::Dot(n,v)*(1 - k) + k};
+
+
+			return nominator / denominator;
 		}
 
 		/**
