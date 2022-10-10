@@ -70,15 +70,29 @@ void Renderer::Render(Scene* pScene) const
 						continue;
 
 					// for every light
-					ColorRGB BRDFrgb = materials[closestHit.materialIndex]->Shade(closestHit, -directionToLight, rayDirection);
+					ColorRGB BRDFrgb = materials[closestHit.materialIndex]->Shade(closestHit, directionToLight, -rayDirection);
 
 					// Lambert shading
 					const float lambertCosine = Vector3::Dot(closestHit.normal, (directionToLight));
 
-					if (lambertCosine < 0)
+					if (lambertCosine <= 0)
 						continue;
 
-					finalColor += LightUtils::GetRadiance(light, closestHit.origin) * BRDFrgb * lambertCosine;
+					switch (m_CurrentLightingMode)
+					{
+					case LightingMode::ObservedArea:
+						finalColor += ColorRGB{1.f,1.f,1.f} * lambertCosine;
+						break;
+					case LightingMode::Radiance:
+						finalColor += LightUtils::GetRadiance(light, closestHit.origin);
+						break;
+					case LightingMode::BRDF:
+						finalColor += BRDFrgb;
+						break;
+					case LightingMode::Combined:
+						finalColor += LightUtils::GetRadiance(light, closestHit.origin) * BRDFrgb * lambertCosine;
+						break;
+					}
 				}
 			}
 			else
@@ -109,7 +123,7 @@ bool Renderer::SaveBufferToImage() const
 void Renderer::CycleLightingMode()
 {
 	int modeId = static_cast<int>(m_CurrentLightingMode);
-	m_CurrentLightingMode = static_cast<LightingMode>((++modeId) % 5);
+	m_CurrentLightingMode = static_cast<LightingMode>((++modeId) % 4);
 
 	switch (m_CurrentLightingMode)
 	{

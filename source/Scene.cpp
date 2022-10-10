@@ -215,12 +215,15 @@ namespace dae {
 
 		const unsigned char matCT_GrayRoughMetal = AddMaterial(new Material_CookTorrence({.972f, .960f, .915f}, 1.f, 1.f));
 		const unsigned char matCT_GrayMediumMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, .6f));
-		const unsigned char matCT_GraySmoothMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, 1.f));
+		const unsigned char matCT_GraySmoothMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, .1f));
 		const unsigned char matCT_GrayRoughPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, 0.f, 1.f));
 		const unsigned char matCT_GrayMediumPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, 0.f, .6f));
-		const unsigned char matCT_GraySmoothPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, 0.f, 1.f));
+		const unsigned char matCT_GraySmoothPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, 0.f, .1f));
 
-		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, .57f, .57 }, 1.f));
+		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, .57f, .57f }, 1.f));
+		const auto matLamber_GrayRedPhong = AddMaterial(new Material_LambertPhong{ colors::Red, 0.5f, 0.5f, 50.f });
+		const auto matLamber_GrayBluePhong = AddMaterial(new Material_LambertPhong{ colors::Blue, 0.5f, 0.5f, 50.f });
+		const auto matLamber_GrayYellowPhong = AddMaterial(new Material_LambertPhong{ colors::Yellow, 0.5f, 0.5f, 50.f });
 
 		//Plane
 		AddPlane({ -5.f, 0.f, 0.f }, { 1.f, 0.f,0.f }, matLambert_GrayBlue);
@@ -233,9 +236,14 @@ namespace dae {
 		AddSphere({ -1.75f, 1.f, 0.f }, .75f, matCT_GrayRoughMetal);
 		AddSphere({ 0.f, 1.f, 0.f }, .75f, matCT_GrayMediumMetal);
 		AddSphere({ 1.75f, 1.f, 0.f }, .75f, matCT_GraySmoothMetal);
+
 		AddSphere({ -1.75f, 3.f, 0.f }, .75f, matCT_GrayRoughPlastic);
 		AddSphere({ 0.f, 3.f, 0.f }, .75f, matCT_GrayMediumPlastic);
 		AddSphere({ 1.75f, 3.f, 0.f }, .75f, matCT_GraySmoothPlastic);
+
+		AddSphere({ -1.75f, 5.f, 0.f }, .75f, matLamber_GrayYellowPhong);
+		AddSphere({ 0.f, 5.f, 0.f }, .75f, matLamber_GrayRedPhong);
+		AddSphere({ 1.75f, 5.f, 0.f }, .75f, matLamber_GrayBluePhong);
 
 		AddPointLight({ 0.f, 5.f, 5.f }, 50.f, ColorRGB{1.f, .61f, .45f});
 		AddPointLight({ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{1.f, .8f, .45f});
