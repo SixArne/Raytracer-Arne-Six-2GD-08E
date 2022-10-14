@@ -24,7 +24,7 @@ namespace dae
 		float fovAngle{ 90.f };
 		float fov{ tanf(45.f * TO_RADIANS / 2.f) };
 
-		// configs
+		// Settings
 		float degreesPerSecond{ 90.f };
 		float moveSpeedPerSecond{ 10.f };
 		float turnSpeedPerSecond{ 10.f };
@@ -126,9 +126,7 @@ namespace dae
 			{
 				if (!(mouseState & SDL_BUTTON_LMASK) != 0)
 				{
-					//rotate yaw
 					totalYaw += mouseX;
-					//rotate pitch
 					totalPitch = Clamp(30.f, 150.f, totalPitch + mouseY);
 
 					// Recalculate view matrix

@@ -26,9 +26,8 @@ void Renderer::Render(Scene* pScene) const
 {
 	const Camera& camera = pScene->GetCamera();
 
-	// lightRay variables
+	// Light ray constants
 	constexpr float minLightRay{ 0.001f };
-	constexpr float shadowMultiplier{ 0.5f };
 
 	auto& materials = pScene->GetMaterials();
 	auto& lights = pScene->GetLights();

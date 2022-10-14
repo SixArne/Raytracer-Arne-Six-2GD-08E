@@ -207,6 +207,7 @@ namespace dae {
 		AddPointLight({ 0.f, 5.f, -5.f }, 70.f, colors::White);
 	}
 
+#pragma endregion
 #pragma region SCENE W3
 	void Scene_W3::Initialize()
 	{

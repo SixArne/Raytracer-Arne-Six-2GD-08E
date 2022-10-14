@@ -83,7 +83,9 @@ namespace dae
 		ColorRGB Shade(const HitRecord& hitRecord = {}, const Vector3& l = {}, const Vector3& v = {}) override
 		{
 			ColorRGB specularReflection = BRDF::Phong(m_SpecularReflectance, m_PhongExponent, l, -v, hitRecord.normal);
-			return BRDF::Lambert(m_DiffuseReflectance, m_DiffuseColor) + specularReflection;
+			ColorRGB diffuse = BRDF::Lambert(m_DiffuseReflectance, m_DiffuseColor);
+
+			return diffuse + specularReflection;
 		}
 
 	private:
@@ -114,10 +116,10 @@ namespace dae
 			// Specular components
 			const ColorRGB F = BRDF::FresnelFunction_Schlick(h, v, f0);
 			const float D = BRDF::NormalDistribution_GGX(hitRecord.normal, h, m_Roughness);
-			const float G = BRDF::GeometryFunction_Smith(hitRecord.normal, v, l, m_Roughness); 
+			const float G = BRDF::GeometryFunction_Smith(hitRecord.normal, v, l, m_Roughness);
 
 			// Specular
-			ColorRGB nominator{D * F * G};
+			ColorRGB nominator{F * D * G};
 			float denominator{ 4 * (Vector3::Dot(v, hitRecord.normal) * Vector3::Dot(l, hitRecord.normal)) };
 			ColorRGB specular{ nominator / denominator };
 
