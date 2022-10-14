@@ -12,9 +12,40 @@ namespace dae
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W1
-			assert(false && "No Implemented Yet!");
-			return false;
+			// We calculate the vector between the sphere and camera (defaulted at 0,0,0)
+			const Vector3 rayOriginToCameraSphere{sphere.origin - ray.origin };
+
+			// This will be our hypotenuse
+			const float cameraSphereLengthSquared = rayOriginToCameraSphere.SqrMagnitude();
+			// We get the length of projecting the sphere center on our ray
+			const float projectedSphereCenterLength{Vector3::Dot(rayOriginToCameraSphere, ray.direction)};
+
+			const float distanceToProjectedPointSquared = cameraSphereLengthSquared - projectedSphereCenterLength * projectedSphereCenterLength;
+
+			// If our projected length is bigger than the sphere we can conclude it didn't hit.
+			if (distanceToProjectedPointSquared > sphere.radius * sphere.radius)
+			{
+				return false;
+			}
+
+			const float distanceToIntersection = std::sqrtf( sphere.radius * sphere.radius - distanceToProjectedPointSquared);
+			const float t = projectedSphereCenterLength - distanceToIntersection;
+
+			if (t < ray.min || t > ray.max)
+			{
+				return false;
+			}
+
+			hitRecord.didHit = true;
+
+			if (ignoreHitRecord)
+				return true;
+			
+			hitRecord.materialIndex = sphere.materialIndex;
+			hitRecord.t = t;
+			hitRecord.origin = ray.origin + t * ray.direction;
+			hitRecord.normal = Vector3(sphere.origin, hitRecord.origin).Normalized();
+			return true;
 		}
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray)
@@ -27,8 +58,22 @@ namespace dae
 		//PLANE HIT-TESTS
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W1
-			assert(false && "No Implemented Yet!");
+			const float t = Vector3::Dot(Vector3{ ray.origin, plane.origin }, plane.normal) / Vector3::Dot(ray.direction, plane.normal);
+
+			if (t >= ray.min && t <= ray.max)
+			{
+				hitRecord.didHit = true;
+				if (ignoreHitRecord)
+					return true;
+
+				hitRecord.t = t;
+				hitRecord.materialIndex = plane.materialIndex;
+				hitRecord.normal = plane.normal;
+				hitRecord.origin = ray.origin + t * ray.direction;
+				return true;
+			}
+
+			hitRecord.didHit = false;
 			return false;
 		}
 
@@ -74,16 +119,17 @@ namespace dae
 		//Direction from target to light
 		inline Vector3 GetDirectionToLight(const Light& light, const Vector3 origin)
 		{
-			//todo W3
-			assert(false && "No Implemented Yet!");
-			return {};
+			Vector3 originLight = light.origin - origin;
+
+			return originLight;
 		}
 
 		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)
 		{
-			//todo W3
-			assert(false && "No Implemented Yet!");
-			return {};
+			// Light intensity
+			//ColorRGB colorRgb = light.color * (light.intensity / (light.origin - target).SqrMagnitude());
+			ColorRGB colorRgb = light.color * (light.intensity / (light.origin - target).SqrMagnitude());
+			return colorRgb;
 		}
 	}
 

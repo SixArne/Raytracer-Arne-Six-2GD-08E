@@ -28,6 +28,7 @@ int main(int argc, char* args[])
 
 	//Create window + surfaces
 	SDL_Init(SDL_INIT_VIDEO);
+	SDL_SetRelativeMouseMode(SDL_FALSE);
 
 	const uint32_t width = 640;
 	const uint32_t height = 480;
@@ -45,7 +46,7 @@ int main(int argc, char* args[])
 	const auto pTimer = new Timer();
 	const auto pRenderer = new Renderer(pWindow);
 
-	const auto pScene = new Scene_W1();
+	const auto pScene = new Scene_W3();
 	pScene->Initialize();
 
 	//Start loop
@@ -53,6 +54,7 @@ int main(int argc, char* args[])
 	float printTimer = 0.f;
 	bool isLooping = true;
 	bool takeScreenshot = false;
+
 	while (isLooping)
 	{
 		//--------- Get input events ---------
@@ -67,6 +69,10 @@ int main(int argc, char* args[])
 			case SDL_KEYUP:
 				if(e.key.keysym.scancode == SDL_SCANCODE_X)
 					takeScreenshot = true;
+				if (e.key.keysym.scancode == SDL_SCANCODE_F2)
+					pRenderer->ToggleShadows();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F3)
+					pRenderer->CycleLightingMode();
 				break;
 			}
 		}
