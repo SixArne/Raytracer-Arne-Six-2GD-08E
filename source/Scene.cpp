@@ -56,9 +56,9 @@ namespace dae {
 			}
 		}
 
-		for (auto& triangle : m_Triangles)
+		for (auto& triangle : m_TriangleMeshGeometries)
 		{
-			const bool hasHit = GeometryUtils::HitTest_Triangle(triangle, ray, record);
+			const bool hasHit = GeometryUtils::HitTest_TriangleMesh(triangle, ray, record);
 
 			if (hasHit && record.t < closestHit.t)
 			{
@@ -94,9 +94,9 @@ namespace dae {
 			}
 		}
 
-		for (auto& triangle : m_Triangles)
+		for (auto& triangle : m_TriangleMeshGeometries)
 		{
-			const bool hasHit = GeometryUtils::HitTest_Triangle(triangle, ray);
+			const bool hasHit = GeometryUtils::HitTest_TriangleMesh(triangle, ray);
 
 			if (hasHit)
 			{
@@ -287,11 +287,15 @@ namespace dae {
 		AddPlane({ 0.f, 10.f, 0.f }, { 0.f, -1.f,0.f }, matLambert_GrayBlue);
 		AddPlane({ 0.f, 0.f, 10.f }, { 0.f, 0.f,-1.f }, matLambert_GrayBlue);
 
-		auto triangle = Triangle{ { -.75f, .5f, .0f}, {-.75f, 2.f, .0f}, {.75f, .5f, 0.f} };
-		triangle.cullMode = TriangleCullMode::NoCulling;
-		triangle.materialIndex = matLambert_White;
+		const auto triangleMesh = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White);
+		triangleMesh->positions = { {-.75f, -1.f, .0f}, {-.75f, 1.f, .0f}, {.75f, 1.f, 1.f}, {.75f, -1.f, 0.f} };
+		triangleMesh->indices = {
+			0,1,2, // tr 1
+			0,2,3 // tr 2
+		};
 
-		m_Triangles.emplace_back(triangle);
+		triangleMesh->CalculateNormals();
+		triangleMesh->UpdateTransforms();
 
 		AddPointLight({ 0.f, 5.f, 5.f }, 50.f, ColorRGB{ 1.f, .61f, .45f });
 		AddPointLight({ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f });

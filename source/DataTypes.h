@@ -3,6 +3,7 @@
 
 #include "Math.h"
 #include "vector"
+#include <stdexcept>
 
 namespace dae
 {
@@ -126,20 +127,29 @@ namespace dae
 			if (indices.size() % 3 != 0)
 				throw std::runtime_error("Triangle model has no multiple of 3 indices");
 
-			for (int index{}; index < indices.size(); index += 3)
+			int vertexCount{ 0 };
+			for (int index{}; index < indices.size(); index++)
 			{
-				Vector3 v0 = positions[index];
-				Vector3 v1 = positions[index +1];
-				Vector3 v2 = positions[index +2];
+				vertexCount++;
 
-				Vector3 n = Vector3::Cross(v1 - v0, v2 - v0);
-				normals.push_back(n);
+				if (vertexCount == 3)
+				{
+					Vector3 v0 = positions[indices[index - 2]];
+					Vector3 v1 = positions[indices[index - 1]];
+					Vector3 v2 = positions[indices[index]];
+
+					Vector3 n = Vector3::Cross(v1 - v0, v2 - v0).Normalized();
+					normals.push_back(n);
+
+					// reset index counter
+					vertexCount = 0;
+				}
 			}
 		}
 
 		void UpdateTransforms()
 		{
-			assert(false && "No Implemented Yet!");
+			//assert(false && "No Implemented Yet!");
 			//Calculate Final Transform 
 			//const auto finalTransform = ...
 
@@ -148,6 +158,8 @@ namespace dae
 
 			//Transform Normals (normals > transformedNormals)
 			//...
+			transformedNormals = normals;
+			transformedPositions = positions;
 		}
 	};
 #pragma endregion

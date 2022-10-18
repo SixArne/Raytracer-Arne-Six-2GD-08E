@@ -192,21 +192,35 @@ namespace dae
 			Triangle triangle{};
 			int normalCounter{};
 
-			if (mesh.positions.size() % 3 != 0)
+			if (mesh.indices.size() % 3 != 0)
 				throw std::runtime_error("Mesh no multiple of 3");
 
-			for (size_t positionIndex{}; positionIndex < mesh.positions.size(); positionIndex += 3)
+			int vertexCount{};
+			int normalCount{};
+
+			for (int index{}; index < mesh.indices.size(); index++)
 			{
-				triangle.normal = mesh.normals[normalCounter++];
-				triangle.v0 = mesh.positions[positionIndex];
-				triangle.v1 = mesh.positions[positionIndex + 1];
-				triangle.v2 = mesh.positions[positionIndex + 2];
+				vertexCount++;
 
-				bool hasHit = HitTest_Triangle(triangle, ray, hitRecord);
-
-				if (hasHit)
+				if (vertexCount == 3)
 				{
-					return true;
+					triangle.normal = mesh.normals[normalCount];
+					triangle.v0 = mesh.positions[mesh.indices[index - 2]];
+					triangle.v1 = mesh.positions[mesh.indices[index - 1]];
+					triangle.v2 = mesh.positions[mesh.indices[index]];
+
+					triangle.cullMode = mesh.cullMode;
+					triangle.materialIndex = mesh.materialIndex;
+
+					vertexCount = 0;
+					normalCount++;
+
+					bool hasHit = HitTest_Triangle(triangle, ray, hitRecord);
+
+					if (hasHit)
+					{
+						return true;
+					}
 				}
 			}
 
