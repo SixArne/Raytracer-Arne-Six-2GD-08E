@@ -51,6 +51,8 @@ namespace dae
 		std::vector<Light> m_Lights{};
 		std::vector<Material*> m_Materials{};
 
+		std::vector<Triangle> m_Triangles{};
+
 		Camera m_Camera{};
 
 		Sphere* AddSphere(const Vector3& origin, float radius, unsigned char materialIndex = 0);
@@ -84,10 +86,10 @@ namespace dae
 		Scene_W2() = default;
 		~Scene_W2() override = default;
 
-		Scene_W2(const Scene_W1&) = delete;
-		Scene_W2(Scene_W1&&) noexcept = delete;
-		Scene_W2& operator=(const Scene_W1&) = delete;
-		Scene_W2& operator=(Scene_W1&&) noexcept = delete;
+		Scene_W2(const Scene_W2&) = delete;
+		Scene_W2(Scene_W2&&) noexcept = delete;
+		Scene_W2& operator=(const Scene_W2&) = delete;
+		Scene_W2& operator=(Scene_W2&&) noexcept = delete;
 
 		void Initialize() override;
 	};
@@ -98,10 +100,24 @@ namespace dae
 		Scene_W3() = default;
 		~Scene_W3() override = default;
 
-		Scene_W3(const Scene_W1&) = delete;
-		Scene_W3(Scene_W1&&) noexcept = delete;
-		Scene_W3& operator=(const Scene_W1&) = delete;
-		Scene_W3& operator=(Scene_W1&&) noexcept = delete;
+		Scene_W3(const Scene_W3&) = delete;
+		Scene_W3(Scene_W3&&) noexcept = delete;
+		Scene_W3& operator=(const Scene_W3&) = delete;
+		Scene_W3& operator=(Scene_W3&&) noexcept = delete;
+
+		void Initialize() override;
+	};
+
+	class Scene_W5 final : public Scene
+	{
+	public:
+		Scene_W5() = default;
+		~Scene_W5() override = default;
+
+		Scene_W5(const Scene_W5&) = delete;
+		Scene_W5(Scene_W5&&) noexcept = delete;
+		Scene_W5& operator=(const Scene_W5&) = delete;
+		Scene_W5& operator=(Scene_W5&&) noexcept = delete;
 
 		void Initialize() override;
 	};

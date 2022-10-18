@@ -55,6 +55,16 @@ namespace dae {
 				closestHit = record;
 			}
 		}
+
+		for (auto& triangle : m_Triangles)
+		{
+			const bool hasHit = GeometryUtils::HitTest_Triangle(triangle, ray, record);
+
+			if (hasHit && record.t < closestHit.t)
+			{
+				closestHit = record;
+			}
+		}
 	}
 
 	bool Scene::DoesHit(const Ray& ray) const
@@ -77,6 +87,16 @@ namespace dae {
 		for (auto& plane : planes)
 		{
 			const bool hasHit = GeometryUtils::HitTest_Plane(plane, ray);
+
+			if (hasHit)
+			{
+				return true;
+			}
+		}
+
+		for (auto& triangle : m_Triangles)
+		{
+			const bool hasHit = GeometryUtils::HitTest_Triangle(triangle, ray);
 
 			if (hasHit)
 			{
@@ -251,6 +271,32 @@ namespace dae {
 		AddPointLight({ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{.34f, .47f, .68f});
 	}
 #pragma endregion
+
+	void Scene_W5::Initialize()
+	{
+		m_Camera.origin = { 0.f, 1.f, -5.f };
+		m_Camera.fovAngle = 45.0f;
+
+		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({.49f, 0.57f, 0.57f}, 1.f));
+		const auto matLambert_White = AddMaterial(new Material_Lambert(colors::White, 1.f));
+
+		//Plane
+		AddPlane({ -5.f, 0.f, 0.f }, { 1.f, 0.f,0.f }, matLambert_GrayBlue);
+		AddPlane({ 5.f, 0.f, 0.f }, { -1.f, 0.f,0.f }, matLambert_GrayBlue);
+		AddPlane({ 0.f, 0.f, 0.f }, { 0.f, 1.f,0.f }, matLambert_GrayBlue);
+		AddPlane({ 0.f, 10.f, 0.f }, { 0.f, -1.f,0.f }, matLambert_GrayBlue);
+		AddPlane({ 0.f, 0.f, 10.f }, { 0.f, 0.f,-1.f }, matLambert_GrayBlue);
+
+		auto triangle = Triangle{ { -.75f, .5f, .0f}, {-.75f, 2.f, .0f}, {.75f, .5f, 0.f} };
+		triangle.cullMode = TriangleCullMode::NoCulling;
+		triangle.materialIndex = matLambert_White;
+
+		m_Triangles.emplace_back(triangle);
+
+		AddPointLight({ 0.f, 5.f, 5.f }, 50.f, ColorRGB{ 1.f, .61f, .45f });
+		AddPointLight({ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f });
+		AddPointLight({ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{ .34f, .47f, .68f });
+	}
 
 }
 

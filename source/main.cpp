@@ -46,7 +46,7 @@ int main(int argc, char* args[])
 	const auto pTimer = new Timer();
 	const auto pRenderer = new Renderer(pWindow);
 
-	const auto pScene = new Scene_W3();
+	const auto pScene = new Scene_W5();
 	pScene->Initialize();
 
 	//Start loop
@@ -86,10 +86,13 @@ int main(int argc, char* args[])
 		//--------- Timer ---------
 		pTimer->Update();
 		printTimer += pTimer->GetElapsed();
+
 		if (printTimer >= 1.f)
 		{
+			SDL_SetWindowTitle(pWindow, std::to_string(pTimer->GetdFPS()).c_str());
+			
 			printTimer = 0.f;
-			std::cout << "dFPS: " << pTimer->GetdFPS() << std::endl;
+			//std::cout << "dFPS: " << pTimer->GetdFPS() << std::endl;
 		}
 
 		//Save screenshot after full render

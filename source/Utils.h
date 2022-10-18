@@ -87,9 +87,97 @@ namespace dae
 		//TRIANGLE HIT-TESTS
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W5
-			assert(false && "No Implemented Yet!");
-			return false;
+			#pragma region oldTriangleTest
+			//const float D = Vector3::Dot(triangle.normal, triangle.v0);
+			//const float t = -(Vector3::Dot(triangle.normal, ray.origin) + D) / Vector3::Dot(triangle.normal, ray.direction);
+			//
+			//Vector3 planeIntersectionPoint = ray.origin + t * ray.direction;
+
+			//Vector3 BA = Vector3::Cross(triangle.v1 - triangle.v0, planeIntersectionPoint - triangle.v0);
+			//Vector3 CB = Vector3::Cross(triangle.v2 - triangle.v1, planeIntersectionPoint - triangle.v1);
+			//Vector3 AC = Vector3::Cross(triangle.v0 - triangle.v2, planeIntersectionPoint - triangle.v2);
+
+			//// if any of these fail then its outside
+			//if (Vector3::Dot(BA, triangle.normal) < 0
+			//	|| Vector3::Dot(CB, triangle.normal) < 0
+			//	|| Vector3::Dot(AC, triangle.normal) < 0)
+			//{
+			//	hitRecord.didHit = false;
+			//	return false;
+			//}
+
+			//if (ignoreHitRecord)
+			//	return true;
+
+			//hitRecord.origin = ray.origin + t * ray.direction;
+			//hitRecord.normal = triangle.normal;
+			//hitRecord.didHit = true;
+			//hitRecord.materialIndex = triangle.materialIndex;
+			//hitRecord.t = t;
+
+			//return true;
+			#pragma endregion
+
+			Vector3 a = triangle.v1 - triangle.v0;
+			Vector3 b = triangle.v2 - triangle.v0;
+			Vector3 n = Vector3::Cross(a, b);
+
+			float normalViewDot = Vector3::Dot(n, ray.direction);
+
+			#pragma region Culling and early exits
+			// if our ray is perpendicular to the normal it will never hit.
+			if (normalViewDot == 0)
+				return false;
+
+			// Skip calculations depending on cull mode
+			if (triangle.cullMode == TriangleCullMode::FrontFaceCulling && normalViewDot < 0)
+				return false;
+
+			// Skip calculations depending on cull mode
+			if (triangle.cullMode == TriangleCullMode::BackFaceCulling && normalViewDot > 0)
+				return false;
+
+			#pragma endregion
+
+			Vector3 center = ((triangle.v0 + triangle.v1 + triangle.v2) / 3.f );
+			Vector3 L = center - ray.origin;
+			float t = Vector3::Dot(L, n) / Vector3::Dot(ray.direction, n);
+
+			if (t < ray.min || t > ray.max)
+				return false;
+
+			Vector3 p = ray.origin + t * ray.direction;
+
+			#pragma region IsContainedWithinTriangle
+			Vector3 edgeA = triangle.v1 - triangle.v0;
+			Vector3 pointToSideA = p - triangle.v0;
+
+			if (Vector3::Dot(n, Vector3::Cross(edgeA, pointToSideA)) < 0)
+				return false;
+
+			Vector3 edgeB = triangle.v2 - triangle.v0;
+			Vector3 pointToSideB = p - triangle.v0;
+
+			if (Vector3::Dot(n, Vector3::Cross(pointToSideB, edgeB)) < 0)
+				return false;
+
+			Vector3 edgeC = triangle.v1 - triangle.v2;
+			Vector3 pointToSideC = p - triangle.v2;
+
+			if (Vector3::Dot(n, Vector3::Cross(pointToSideC, edgeC)) < 0)
+				return false;
+			#pragma endregion
+
+			if (ignoreHitRecord)
+				return true;
+
+			hitRecord.origin = ray.origin + t * ray.direction;
+			hitRecord.normal = triangle.normal;
+			hitRecord.didHit = true;
+			hitRecord.materialIndex = triangle.materialIndex;
+			hitRecord.t = t;
+
+			return true;
 		}
 
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray)
@@ -101,8 +189,27 @@ namespace dae
 #pragma region TriangeMesh HitTest
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W5
-			assert(false && "No Implemented Yet!");
+			Triangle triangle{};
+			int normalCounter{};
+
+			if (mesh.positions.size() % 3 != 0)
+				throw std::runtime_error("Mesh no multiple of 3");
+
+			for (size_t positionIndex{}; positionIndex < mesh.positions.size(); positionIndex += 3)
+			{
+				triangle.normal = mesh.normals[normalCounter++];
+				triangle.v0 = mesh.positions[positionIndex];
+				triangle.v1 = mesh.positions[positionIndex + 1];
+				triangle.v2 = mesh.positions[positionIndex + 2];
+
+				bool hasHit = HitTest_Triangle(triangle, ray, hitRecord);
+
+				if (hasHit)
+				{
+					return true;
+				}
+			}
+
 			return false;
 		}
 

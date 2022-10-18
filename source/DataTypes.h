@@ -123,7 +123,18 @@ namespace dae
 
 		void CalculateNormals()
 		{
-			assert(false && "No Implemented Yet!");
+			if (indices.size() % 3 != 0)
+				throw std::runtime_error("Triangle model has no multiple of 3 indices");
+
+			for (int index{}; index < indices.size(); index += 3)
+			{
+				Vector3 v0 = positions[index];
+				Vector3 v1 = positions[index +1];
+				Vector3 v2 = positions[index +2];
+
+				Vector3 n = Vector3::Cross(v1 - v0, v2 - v0);
+				normals.push_back(n);
+			}
 		}
 
 		void UpdateTransforms()
