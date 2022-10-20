@@ -33,8 +33,8 @@ namespace dae
 		Vector3 up{ Vector3::UnitY };
 		Vector3 right{ Vector3::UnitX };
 
-		float totalPitch{ 90.f };
-		float totalYaw{ 90.f };
+		float totalPitch{ 0.f };
+		float totalYaw{ 0.f };
 
 		Matrix cameraToWorld{};
 
@@ -43,13 +43,13 @@ namespace dae
 			// inverse pitch to make the pitch variable itself more reasonable
 			const Matrix rotation{ Matrix::CreateRotationX(-totalPitch * TO_RADIANS) * Matrix::CreateRotationY(totalYaw * TO_RADIANS) };
 
-			/*forward = rotation.TransformVector(Vector3::UnitZ).Normalized();
+			forward = rotation.TransformVector(Vector3::UnitZ).Normalized();
 			right = Vector3::Cross(Vector3::UnitY, forward).Normalized();
-			up = Vector3::Cross(forward, right).Normalized();*/
+			up = Vector3::Cross(forward, right).Normalized();
 
-			forward = rotation.GetAxisZ();
+		/*	forward = rotation.GetAxisZ();
 			right = rotation.GetTranslation();
-			up = rotation.GetAxisY();
+			up = rotation.GetAxisY();*/
 
 			cameraToWorld = {
 				Vector4{right, 0},
@@ -127,7 +127,9 @@ namespace dae
 				if (!(mouseState & SDL_BUTTON_LMASK) != 0)
 				{
 					totalYaw += mouseX;
-					totalPitch = Clamp(30.f, 150.f, totalPitch + mouseY);
+					//totalPitch += mouseY;
+					//std::cout << totalPitch << "\n";
+					totalPitch = Clamp(-60.f, 30.f, totalPitch + mouseY);
 
 					// Recalculate view matrix
 					CalculateCameraToWorld();

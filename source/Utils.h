@@ -204,10 +204,10 @@ namespace dae
 
 				if (vertexCount == 3)
 				{
-					triangle.normal = mesh.normals[normalCount];
-					triangle.v0 = mesh.positions[mesh.indices[index - 2]];
-					triangle.v1 = mesh.positions[mesh.indices[index - 1]];
-					triangle.v2 = mesh.positions[mesh.indices[index]];
+					triangle.normal = mesh.transformedNormals[normalCount];
+					triangle.v0 = mesh.transformedPositions[mesh.indices[index - 2]];
+					triangle.v1 = mesh.transformedPositions[mesh.indices[index - 1]];
+					triangle.v2 = mesh.transformedPositions[mesh.indices[index]];
 
 					triangle.cullMode = mesh.cullMode;
 					triangle.materialIndex = mesh.materialIndex;

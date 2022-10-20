@@ -149,17 +149,25 @@ namespace dae
 
 		void UpdateTransforms()
 		{
-			//assert(false && "No Implemented Yet!");
-			//Calculate Final Transform 
-			//const auto finalTransform = ...
+			const Matrix finalTransform = scaleTransform * rotationTransform * translationTransform;
 
-			//Transform Positions (positions > transformedPositions)
-			//...
+			transformedNormals.clear();
+			transformedNormals.reserve(normals.size());
 
-			//Transform Normals (normals > transformedNormals)
-			//...
-			transformedNormals = normals;
-			transformedPositions = positions;
+			transformedPositions.clear();
+			transformedPositions.reserve(positions.size());
+
+			for (auto position : positions)
+			{
+				Vector3 result = finalTransform.TransformPoint(position);
+				transformedPositions.emplace_back(result);
+			}
+
+			for (auto normal : normals)
+			{
+				Vector3 result = finalTransform.TransformVector(normal);
+				transformedNormals.emplace_back(finalTransform.TransformVector(result));
+			}
 		}
 	};
 #pragma endregion

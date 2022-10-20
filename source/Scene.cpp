@@ -277,7 +277,7 @@ namespace dae {
 		m_Camera.origin = { 0.f, 1.f, -5.f };
 		m_Camera.fovAngle = 45.0f;
 
-		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({.49f, 0.57f, 0.57f}, 1.f));
+		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, 0.57f, 0.57f }, 1.f));
 		const auto matLambert_White = AddMaterial(new Material_Lambert(colors::White, 1.f));
 
 		//Plane
@@ -288,13 +288,22 @@ namespace dae {
 		AddPlane({ 0.f, 0.f, 10.f }, { 0.f, 0.f,-1.f }, matLambert_GrayBlue);
 
 		const auto triangleMesh = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White);
-		triangleMesh->positions = { {-.75f, -1.f, .0f}, {-.75f, 1.f, .0f}, {.75f, 1.f, 1.f}, {.75f, -1.f, 0.f} };
+		triangleMesh->positions = { 
+			{-.75f, -1.f, .0f}, 
+			{-.75f, 1.f, .0f}, 
+			{.75f, 1.f, 1.f}, 
+			{.75f, -1.f, 0.f}
+		};
 		triangleMesh->indices = {
 			0,1,2, // tr 1
 			0,2,3 // tr 2
 		};
 
 		triangleMesh->CalculateNormals();
+
+		triangleMesh->Translate({ 0.0f, 1.5f, 0.0f });
+		triangleMesh->RotateY(45.f * TO_RADIANS);
+
 		triangleMesh->UpdateTransforms();
 
 		AddPointLight({ 0.f, 5.f, 5.f }, 50.f, ColorRGB{ 1.f, .61f, .45f });

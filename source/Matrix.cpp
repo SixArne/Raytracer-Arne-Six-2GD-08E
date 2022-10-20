@@ -101,7 +101,6 @@ namespace dae {
 	{
 		return data[3];
 	}
-
 	Matrix Matrix::CreateTranslation(float x, float y, float z)
 	{
 		Matrix matrix = {
@@ -204,7 +203,8 @@ namespace dae {
 		{
 			for (int c{ 0 }; c < 4; ++c)
 			{
-				result[r][c] = Vector4::Dot(data[r], m_transposed[c]);
+				auto inter = Vector4::Dot(data[r], m_transposed[c]);
+				result[r][c] = inter;
 			}
 		}
 
