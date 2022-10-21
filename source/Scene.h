@@ -120,5 +120,9 @@ namespace dae
 		Scene_W5& operator=(Scene_W5&&) noexcept = delete;
 
 		void Initialize() override;
+		void Update(Timer* pTimer) override;
+
+	private:
+		TriangleMesh* pMesh{ nullptr };
 	};
 }
