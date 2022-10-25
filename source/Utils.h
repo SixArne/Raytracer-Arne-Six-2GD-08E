@@ -87,12 +87,9 @@ namespace dae
 #pragma endregion
 #pragma region Triangle HitTest
 		//TRIANGLE HIT-TESTS
-		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false, bool usingMoller = true)
+		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			if (!usingMoller)
-			{
-			
-//#pragma region Mine
+//#pragma region Old
 //				float normalViewDot = Vector3::Dot(triangle.normal, ray.direction);
 //
 //#pragma region Culling and early exits
@@ -151,93 +148,7 @@ namespace dae
 //
 //				return true;
 //#pragma endregion
-#pragma region Ward
-				const Vector3 edgeA{ triangle.v1 - triangle.v0 };
-				const Vector3 edgeB{ triangle.v2 - triangle.v1 };
-				const Vector3 edgeC{ triangle.v0 - triangle.v2 };
-
-				// Cross the 2 edges to get the normal of the triangle
-				const Vector3 normal{ triangle.normal };
-
-				// Check if the ray is parallel to the triangle
-				const float NdotV{ Vector3::Dot(ray.direction, normal) };
-				if (NdotV == 0)
-				{
-					return false;  // If the ray faces away from the plane of the triangle, it won't ever hit
-				}
-				else if (NdotV > 0)
-				{
-					// BACK FACE towards us
-					if (!ignoreHitRecord && triangle.cullMode == TriangleCullMode::BackFaceCulling)
-					{
-						// Don't render the back face if we cull the back face (culling == strip/remove)
-						return false;
-					}
-					else if (ignoreHitRecord && triangle.cullMode == TriangleCullMode::FrontFaceCulling)
-					{
-						// Shadowrays are inverted so we invert the culling for shadowrays (ignorehitrecord true)
-						return false;
-					}
-				}
-				else
-				{
-					// FRONT FACE towards us
-					if (!ignoreHitRecord && triangle.cullMode == TriangleCullMode::FrontFaceCulling)
-					{
-						// Don't render the front face if we cull the front face
-						return false;
-					}
-
-					if (ignoreHitRecord && triangle.cullMode == TriangleCullMode::BackFaceCulling)
-					{
-						// If it's a shadow ray (ignorehitrecord true), we invert the culling
-						return false;
-					}
-				}
-
-
-				// Average of the 3 points to get the center of the triangle
-				const Vector3 center{ (triangle.v0 + triangle.v1 + triangle.v2) / 3.0f };
-
-				// Calculate distance hitPoint
-				const Vector3 l{ center - ray.origin };  // Point to the center of the 'plane'
-				const float t{ Vector3::Dot(l, normal) / NdotV };
-
-				// Check if T exceeds the boundaries set in the ray struct (tMin & tMax)
-				if (t < ray.min || t > ray.max)
-					return false;  // T is out of bounds
-
-				// We can calculate where point P is, by multiplying the direction, with the distance (t) found earlier.
-				// Add that to the ray's origin to find P
-				const Vector3 p{ ray.origin + (t * ray.direction) };  // Point on the plane
-
-
-				// Now we check wether the found point is inside or outside the triangle bounds
-				//const Vector3 pointToSide{ p - triangle.v0 };
-
-				if (Vector3::Dot(normal, Vector3::Cross(edgeA, p - triangle.v0)) < 0)
-					return false;  // Point is outside the triangle
-
-				if (Vector3::Dot(normal, Vector3::Cross(edgeB, p - triangle.v1)) < 0)
-					return false;  // Point is outside the triangle
-
-				if (Vector3::Dot(normal, Vector3::Cross(edgeC, p - triangle.v2)) < 0)
-					return false;  // Point is outside the triangle
-
-				if (ignoreHitRecord)
-					return true;
-
-				hitRecord.didHit = true;
-				hitRecord.materialIndex = triangle.materialIndex;
-				hitRecord.origin = p;
-				hitRecord.normal = normal;
-				hitRecord.t = t;
-
-				return true;
-#pragma endregion
-			}
-			else
-			{
+		
 #pragma region Mine
 				constexpr float EPSILON = 0.0000001f;
 
@@ -303,70 +214,12 @@ namespace dae
 				else
 					return false;
 #pragma endregion
-//#pragma region Ward
-//				const Vector3 edge1{ triangle.v1 - triangle.v0 };
-//				const Vector3 edge2{ triangle.v2 - triangle.v0 };
-//
-//				const Vector3 h{ Vector3::Cross(ray.direction, edge2) };
-//				const float a{ Vector3::Dot(edge1, h) };
-//
-//				if (AreEqual(a, 0.0f))
-//					return false;
-//
-//				if (a < 0.0f)
-//				{
-//					// Backface hit
-//					if (!ignoreHitRecord && triangle.cullMode == TriangleCullMode::BackFaceCulling)
-//						// Remove the face if it's "culled" away
-//						return false;
-//					if (ignoreHitRecord && triangle.cullMode == TriangleCullMode::FrontFaceCulling)
-//						// Shadow rays (ignorehitrecord true) have inverted culling
-//						return false;
-//				}
-//				else if (a > 0.0f)
-//				{
-//					// Frontface hit
-//					if (!ignoreHitRecord && triangle.cullMode == TriangleCullMode::FrontFaceCulling)
-//						// Remove the face if it's "culled" away
-//						return false;
-//					if (ignoreHitRecord && triangle.cullMode == TriangleCullMode::BackFaceCulling)
-//						// Shadow rays (ignorehitrecord true) have inverted culling
-//						return false;
-//				}
-//
-//				const float f{ 1.0f / a };
-//				const Vector3 s{ ray.origin - triangle.v0 };
-//				const float u{ f * Vector3::Dot(s, h) };
-//
-//				if (u < 0.0f || u > 1.0f)
-//					return false;
-//
-//				const Vector3 q{ Vector3::Cross(s, edge1) };
-//				const float v{ f * Vector3::Dot(ray.direction, q) };
-//
-//				if (v < 0.0f || u + v > 1.0f)
-//					return false;
-//
-//				const float t{ f * Vector3::Dot(edge2, q) };
-//				if (t > ray.min && t < ray.max)
-//				{
-//					if (ignoreHitRecord) return true;
-//					hitRecord.didHit = true;
-//					hitRecord.materialIndex = triangle.materialIndex;
-//					hitRecord.origin = ray.origin + (t * ray.direction);
-//					hitRecord.normal = triangle.normal;
-//					hitRecord.t = t;
-//					return true;
-//				}
-//				return false;
-//#pragma endregion
-			}
 		}
 
-		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, bool usingMoller = true)
+		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray)
 		{
 			HitRecord temp{};
-			return HitTest_Triangle(triangle, ray, temp, true, usingMoller);
+			return HitTest_Triangle(triangle, ray, temp, true);
 		}
 #pragma endregion
 #pragma region TriangeMesh HitTest
@@ -428,7 +281,7 @@ namespace dae
 					vertexCount = 0;
 					normalCount++;
 
-					bool hasHit = HitTest_Triangle(triangle, ray, hitRecord, false, usingMoller);
+					bool hasHit = HitTest_Triangle(triangle, ray, hitRecord);
 
 					if (hasHit && ignoreHitRecord)
 					{

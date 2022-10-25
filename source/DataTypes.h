@@ -173,7 +173,7 @@ namespace dae
 
 			for (auto normal : normals)
 			{
-				Vector3 result = finalTransform.TransformVector(normal);
+				Vector3 result = rotationTransform.TransformVector(normal);
 				transformedNormals.emplace_back(result);
 			}
 		}

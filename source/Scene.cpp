@@ -58,7 +58,7 @@ namespace dae {
 
 		for (auto& triangle : m_TriangleMeshGeometries)
 		{
-			const bool hasHit = GeometryUtils::HitTest_TriangleMesh(triangle, ray, record, m_UsingMoller);
+			const bool hasHit = GeometryUtils::HitTest_TriangleMesh(triangle, ray, record);
 
 			if (hasHit && record.t < closestHit.t)
 			{
@@ -96,7 +96,7 @@ namespace dae {
 
 		for (auto& triangle : m_TriangleMeshGeometries)
 		{
-			const bool hasHit = GeometryUtils::HitTest_TriangleMesh(triangle, ray, m_UsingMoller);
+			const bool hasHit = GeometryUtils::HitTest_TriangleMesh(triangle, ray);
 
 			if (hasHit)
 			{
@@ -389,7 +389,7 @@ namespace dae {
 	{
 		Scene::Update(pTimer);
 
-		//pMesh->RotateY(PI_DIV_2 * pTimer->GetTotal());
+		// pMesh->RotateY(PI_DIV_4 * pTimer->GetTotal());
 
 		pMesh->UpdateTransforms();
 
