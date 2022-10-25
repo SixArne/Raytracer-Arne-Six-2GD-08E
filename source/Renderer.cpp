@@ -10,8 +10,15 @@
 #include "Material.h"
 #include "Scene.h"
 #include "Utils.h"
+#include "Camera.h"
+#include <future>
+#include <ppl.h>
 
+#include <vector>
 using namespace dae;
+
+//#define ASYNC
+#define PARALLEL_FOR
 
 Renderer::Renderer(SDL_Window * pWindow) :
 	m_pWindow(pWindow),
@@ -24,90 +31,72 @@ Renderer::Renderer(SDL_Window * pWindow) :
 
 void Renderer::Render(Scene* pScene) const
 {
-	const Camera& camera = pScene->GetCamera();
-
-	// Light ray constants
-	constexpr float minLightRay{ 0.001f };
+	Camera& camera = pScene->GetCamera();
+	camera.CalculateCameraToWorld();
 
 	auto& materials = pScene->GetMaterials();
 	auto& lights = pScene->GetLights();
 
-	const float ar{ (static_cast<float>(m_Width) / static_cast<float>(m_Height)) };
+	const float as{ (static_cast<float>(m_Width) / static_cast<float>(m_Height)) };
 
-	for (int px{}; px < m_Width; ++px)
+	const uint32_t numPixels = m_Width * m_Height;
+
+#if defined(ASYNC)
+	const uint32_t numCores = std::thread::hardware_concurrency();
+	std::vector<std::future<void>> async_futures{};
+
+	const uint32_t numPixelsPerTask = numPixels / numCores;
+	uint32_t numUnassignedPixels = numPixels % numCores;
+	uint32_t currPixelIndex = 0;
+
+	for (uint32_t coreId{ 0 }; coreId < numCores; ++coreId)
 	{
-		const float cx = ((2 * (static_cast<float>(px) + 0.5f)) / static_cast<float>(m_Width) - 1) * ar * camera.fov;
+		uint32_t taskSize = numPixelsPerTask;
 
-		for (int py{}; py < m_Height; ++py)
+		if (numUnassignedPixels > 0)
 		{
-			const float cy = (1 - (2 * (static_cast<float>(py) + 0.5f)) / static_cast<float>(m_Height)) * camera.fov;
+			++taskSize;
+			--numUnassignedPixels;
+		}
 
-			const Vector3 rayDirection = camera.cameraToWorld.TransformVector(Vector3(cx, cy, 1.f)).Normalized();
-			const Ray hitRay = Ray{ camera.origin, rayDirection };
-
-			// Color to write to buffer
-			ColorRGB finalColor{};
-
-			// HitRecord containing info about hit
-			HitRecord closestHit{};
-
-			pScene->GetClosestHit(hitRay, closestHit);
-			if (closestHit.didHit)
-			{
-				// To shoot our inverse light ray we need to offset it a bit so we don't have self collision.
-				const Vector3 displacedHitOrigin = closestHit.origin + closestHit.normal * minLightRay;
-
-				for (const Light& light : lights)
+		async_futures.push_back(
+			std::async(std::launch::async, [=, this]
 				{
-					// Hard shadow calculations
-					Vector3 directionToLight = LightUtils::GetDirectionToLight(light, displacedHitOrigin);
-					const float distance = directionToLight.Normalize();
-					Ray invLightRay = Ray{ displacedHitOrigin, directionToLight, minLightRay, distance };
+					const uint32_t pixelIndexEnd = currPixelIndex + taskSize;
 
-					// If a shadow needs to be rendered it skips it
-					if (pScene->DoesHit(invLightRay) && m_CanRenderShadow)
-						continue;
-
-					// for every light
-					ColorRGB BRDFrgb = materials[closestHit.materialIndex]->Shade(closestHit, directionToLight, -rayDirection);
-
-					// Lambert shading
-					const float lambertCosine = Vector3::Dot(closestHit.normal, (directionToLight));
-
-					if (lambertCosine <= 0)
-						continue;
-
-					switch (m_CurrentLightingMode)
+					for (uint32_t pixelIndex{ currPixelIndex }; pixelIndex < pixelIndexEnd; ++pixelIndex)
 					{
-					case LightingMode::ObservedArea:
-						finalColor += ColorRGB{1.f,1.f,1.f} * lambertCosine;
-						break;
-					case LightingMode::Radiance:
-						finalColor += LightUtils::GetRadiance(light, closestHit.origin);
-						break;
-					case LightingMode::BRDF:
-						finalColor += BRDFrgb;
-						break;
-					case LightingMode::Combined:
-						finalColor += LightUtils::GetRadiance(light, closestHit.origin) * BRDFrgb * lambertCosine;
-						break;
+						PerPixel(pScene, pixelIndex, camera.fov, as, camera, lights, materials);
 					}
 				}
-			}
-			else
-			{
-				finalColor = ColorRGB{ 1.f, 1.f, 1.f };
-			}
+			)
+		);
 
-			// Normalizes the color to avoid overflows
-			finalColor.MaxToOne();
-
-			m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,
-				static_cast<uint8_t>(finalColor.r * 255),
-				static_cast<uint8_t>(finalColor.g * 255),
-				static_cast<uint8_t>(finalColor.b * 255));
-		}
+		currPixelIndex += taskSize;
 	}
+
+	for (const std::future<void>& f : async_futures)
+	{
+		f.wait();
+	}
+#elif defined(PARALLEL_FOR)
+	concurrency::parallel_for(0u, numPixels, [=, this](int i) {
+		PerPixel(pScene, i, camera.fov, as, camera, lights, materials);
+	});
+#else
+	for (uint32_t p{}; p < numPixels; ++p)
+	{
+		PerPixel(pScene, p, camera.fov, as, camera, lights, materials);
+	}
+#endif
+
+	
+
+
+	/*for (int py{}; py < m_Height; ++py)
+	{
+
+	}*/
 
 	//@END
 	//Update SDL Surface
@@ -140,3 +129,89 @@ void Renderer::CycleLightingMode()
 		break;
 	}
 }
+
+void Renderer::PerPixel(Scene* pScene, uint32_t pixelIndex, float fov, float as, const Camera& camera, const std::vector<Light>& lights, const std::vector<Material*>& materials) const
+{
+	// Light ray constants
+	constexpr float minLightRay{ 0.001f };
+
+	const int px = pixelIndex % m_Width;
+	const int py = pixelIndex / m_Width;
+
+	const float rx = px + 0.5f;
+	const float ry = py + 0.5f;
+
+	const float cx = ((2 * (rx)) / static_cast<float>(m_Width) - 1) * as * camera.fov;
+	const float cy = (1 - (2 * (ry)) / static_cast<float>(m_Height)) * camera.fov;
+
+	const Vector3 rayDirection = camera.cameraToWorld.TransformVector(Vector3(cx, cy, 1.f)).Normalized();
+	const Ray hitRay = Ray{ camera.origin, rayDirection };
+
+	// Color to write to buffer
+	ColorRGB finalColor{};
+
+	// HitRecord containing info about hit
+	HitRecord closestHit{};
+
+	pScene->GetClosestHit(hitRay, closestHit);
+	if (closestHit.didHit)
+	{
+		// To shoot our inverse light ray we need to offset it a bit so we don't have self collision.
+		const Vector3 offsetHitOrigin = closestHit.origin + closestHit.normal * minLightRay;
+
+		for (const Light& light : lights)
+		{
+			// Hard shadow calculations
+			Vector3 directionToLight = LightUtils::GetDirectionToLight(light, closestHit.origin);
+			const float distanceToLight = directionToLight.Normalize();
+
+
+			// If a shadow needs to be rendered it skips it
+			if (m_CanRenderShadow)
+			{
+				Ray invLightRay = Ray{ offsetHitOrigin, LightUtils::GetDirectionToLight(light, offsetHitOrigin).Normalized(), 0.0001f, distanceToLight };
+				if (pScene->DoesHit(invLightRay))
+					continue;
+			}
+
+			// for every light
+			ColorRGB BRDFrgb = materials[closestHit.materialIndex]->Shade(closestHit, directionToLight, -rayDirection);
+
+			// Lambert shading
+			const float lambertCosine = Vector3::Dot(closestHit.normal, directionToLight);
+
+			switch (m_CurrentLightingMode)
+			{
+			case LightingMode::ObservedArea:
+				if (lambertCosine <= 0)
+					continue;
+				finalColor += ColorRGB{ 1.f,1.f,1.f } *lambertCosine;
+				break;
+			case LightingMode::Radiance:
+				finalColor += LightUtils::GetRadiance(light, closestHit.origin);
+				break;
+			case LightingMode::BRDF:
+				finalColor += BRDFrgb;
+				break;
+			case LightingMode::Combined:
+				if (lambertCosine <= 0)
+					continue;
+				finalColor += LightUtils::GetRadiance(light, closestHit.origin) * BRDFrgb * lambertCosine;
+				break;
+			}
+		}
+	}
+	else
+	{
+		finalColor = ColorRGB{ 1.f, 1.f, 1.f };
+	}
+
+	// Normalizes the color to avoid overflows
+	finalColor.MaxToOne();
+
+	m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,
+		static_cast<uint8_t>(finalColor.r * 255),
+		static_cast<uint8_t>(finalColor.g * 255),
+		static_cast<uint8_t>(finalColor.b * 255));
+}
+

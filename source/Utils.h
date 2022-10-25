@@ -118,11 +118,11 @@ namespace dae
 			//return true;
 			#pragma endregion
 
-			Vector3 a = triangle.v1 - triangle.v0;
-			Vector3 b = triangle.v2 - triangle.v0;
-			Vector3 n = Vector3::Cross(a, b);
+		/*	float errorMargin{0.1f};
+			if (Vector3::Dot(triangle.normal, triangle.v0) > errorMargin || Vector3::Dot(triangle.normal, triangle.v0) < errorMargin)
+				std::cout << "WHAT THE FUCK" << "\n";*/
 
-			float normalViewDot = Vector3::Dot(n, ray.direction);
+			float normalViewDot = Vector3::Dot(triangle.normal, ray.direction);
 
 			#pragma region Culling and early exits
 			// if our ray is perpendicular to the normal it will never hit.
@@ -139,9 +139,10 @@ namespace dae
 
 			#pragma endregion
 
-			Vector3 center = ((triangle.v0 + triangle.v1 + triangle.v2) / 3.f );
+			const Vector3 inBetween = triangle.v0 + triangle.v1 + triangle.v2;
+			Vector3 center = inBetween / 3.f;
 			Vector3 L = center - ray.origin;
-			float t = Vector3::Dot(L, n) / Vector3::Dot(ray.direction, n);
+			float t = Vector3::Dot(L, triangle.normal) / Vector3::Dot(ray.direction, triangle.normal);
 
 			if (t < ray.min || t > ray.max)
 				return false;
@@ -152,26 +153,26 @@ namespace dae
 			Vector3 edgeA = triangle.v1 - triangle.v0;
 			Vector3 pointToSideA = p - triangle.v0;
 
-			if (Vector3::Dot(n, Vector3::Cross(edgeA, pointToSideA)) < 0)
+			if (Vector3::Dot(triangle.normal, Vector3::Cross(edgeA, pointToSideA)) < 0)
 				return false;
 
 			Vector3 edgeB = triangle.v2 - triangle.v0;
 			Vector3 pointToSideB = p - triangle.v0;
 
-			if (Vector3::Dot(n, Vector3::Cross(pointToSideB, edgeB)) < 0)
+			if (Vector3::Dot(triangle.normal, Vector3::Cross(pointToSideB, edgeB)) < 0)
 				return false;
 
 			Vector3 edgeC = triangle.v1 - triangle.v2;
 			Vector3 pointToSideC = p - triangle.v2;
 
-			if (Vector3::Dot(n, Vector3::Cross(pointToSideC, edgeC)) < 0)
+			if (Vector3::Dot(triangle.normal, Vector3::Cross(pointToSideC, edgeC)) < 0)
 				return false;
 			#pragma endregion
 
 			if (ignoreHitRecord)
 				return true;
 
-			hitRecord.origin = ray.origin + t * ray.direction;
+			hitRecord.origin = ray.origin + (t * ray.direction);
 			hitRecord.normal = triangle.normal;
 			hitRecord.didHit = true;
 			hitRecord.materialIndex = triangle.materialIndex;
@@ -191,6 +192,7 @@ namespace dae
 		{
 			Triangle triangle{};
 			int normalCounter{};
+			HitRecord record{};
 
 			if (mesh.indices.size() % 3 != 0)
 				throw std::runtime_error("Mesh no multiple of 3");
@@ -217,11 +219,21 @@ namespace dae
 
 					bool hasHit = HitTest_Triangle(triangle, ray, hitRecord);
 
-					if (hasHit)
-					{
+					if (hasHit && ignoreHitRecord)
 						return true;
+					
+
+					if (hitRecord.t < record.t && hasHit)
+					{
+						record = hitRecord;
 					}
 				}
+			}
+
+			if (record.didHit)
+			{
+				hitRecord = record;
+				return true;
 			}
 
 			return false;

@@ -166,7 +166,7 @@ namespace dae
 			for (auto normal : normals)
 			{
 				Vector3 result = finalTransform.TransformVector(normal);
-				transformedNormals.emplace_back(finalTransform.TransformVector(result));
+				transformedNormals.emplace_back(result);
 			}
 		}
 	};
