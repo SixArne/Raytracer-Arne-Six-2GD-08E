@@ -179,7 +179,7 @@ void Renderer::PerPixel(Scene* pScene, uint32_t pixelIndex, float fov, float as,
 			case LightingMode::ObservedArea:
 				if (lambertCosine <= 0)
 					continue;
-				finalColor += ColorRGB{ 1.f,1.f,1.f } *lambertCosine;
+				finalColor += ColorRGB{ 1.f,1.f,1.f } * lambertCosine;
 				break;
 			case LightingMode::Radiance:
 				finalColor += LightUtils::GetRadiance(light, closestHit.origin);

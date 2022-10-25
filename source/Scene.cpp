@@ -368,11 +368,12 @@ namespace dae {
 		AddPlane({ 0.f, 10.f, 0.f }, { 0.f, -1.f,0.f }, matLambert_GrayBlue);
 		AddPlane({ 0.f, 0.f, 10.f }, { 0.f, 0.f,-1.f }, matLambert_GrayBlue);
 
-		pMesh = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_Gray);
-		Utils::ParseOBJ("Resources/lowpoly_bunny2.obj",
+		pMesh = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_Gray);
+		Utils::ParseOBJ("Resources/lowpoly_bunny.obj",
 			pMesh->positions,
 			pMesh->normals,
 			pMesh->indices);
+		//pMesh->CalculateNormals();
 		
 		pMesh->Scale({ 2.f, 2.f, 2.f });
 
@@ -388,7 +389,7 @@ namespace dae {
 	{
 		Scene::Update(pTimer);
 
-		pMesh->RotateY(PI_DIV_2 * pTimer->GetTotal());
+		//pMesh->RotateY(PI_DIV_2 * pTimer->GetTotal());
 
 		pMesh->UpdateTransforms();
 

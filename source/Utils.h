@@ -91,66 +91,154 @@ namespace dae
 		{
 			if (!usingMoller)
 			{
-				float normalViewDot = Vector3::Dot(triangle.normal, ray.direction);
+			
+//#pragma region Mine
+//				float normalViewDot = Vector3::Dot(triangle.normal, ray.direction);
+//
+//#pragma region Culling and early exits
+//				// if our ray is perpendicular to the normal it will never hit.
+//				if (normalViewDot == 0)
+//					return false;
+//
+//				// Skip calculations depending on cull mode
+//				if (triangle.cullMode == TriangleCullMode::FrontFaceCulling && normalViewDot < 0)
+//					return false;
+//
+//				// Skip calculations depending on cull mode
+//				if (triangle.cullMode == TriangleCullMode::BackFaceCulling && normalViewDot > 0)
+//					return false;
+//
+//#pragma endregion
+//
+//				const Vector3 inBetween = triangle.v0 + triangle.v1 + triangle.v2;
+//				Vector3 center = inBetween / 3.f;
+//				Vector3 L = center - ray.origin;
+//				float t = Vector3::Dot(L, triangle.normal) / Vector3::Dot(ray.direction, triangle.normal);
+//
+//				if (t < ray.min || t > ray.max)
+//					return false;
+//
+//				Vector3 p = ray.origin + t * ray.direction;
+//
+//#pragma region IsContainedWithinTriangle
+//				Vector3 edgeA = triangle.v1 - triangle.v0;
+//				Vector3 pointToSideA = p - triangle.v0;
+//
+//				if (Vector3::Dot(triangle.normal, Vector3::Cross(edgeA, pointToSideA)) < 0)
+//					return false;
+//
+//				Vector3 edgeB = triangle.v2 - triangle.v0;
+//				Vector3 pointToSideB = p - triangle.v0;
+//
+//				if (Vector3::Dot(triangle.normal, Vector3::Cross(pointToSideB, edgeB)) < 0)
+//					return false;
+//
+//				Vector3 edgeC = triangle.v1 - triangle.v2;
+//				Vector3 pointToSideC = p - triangle.v2;
+//
+//				if (Vector3::Dot(triangle.normal, Vector3::Cross(pointToSideC, edgeC)) < 0)
+//					return false;
+//#pragma endregion
+//
+//				if (ignoreHitRecord)
+//					return true;
+//
+//				hitRecord.origin = ray.origin + (t * ray.direction);
+//				hitRecord.normal = triangle.normal;
+//				hitRecord.didHit = true;
+//				hitRecord.materialIndex = triangle.materialIndex;
+//				hitRecord.t = t;
+//
+//				return true;
+//#pragma endregion
+#pragma region Ward
+				const Vector3 edgeA{ triangle.v1 - triangle.v0 };
+				const Vector3 edgeB{ triangle.v2 - triangle.v1 };
+				const Vector3 edgeC{ triangle.v0 - triangle.v2 };
 
-#pragma region Culling and early exits
-				// if our ray is perpendicular to the normal it will never hit.
-				if (normalViewDot == 0)
-					return false;
+				// Cross the 2 edges to get the normal of the triangle
+				const Vector3 normal{ triangle.normal };
 
-				// Skip calculations depending on cull mode
-				if (triangle.cullMode == TriangleCullMode::FrontFaceCulling && normalViewDot < 0)
-					return false;
+				// Check if the ray is parallel to the triangle
+				const float NdotV{ Vector3::Dot(ray.direction, normal) };
+				if (NdotV == 0)
+				{
+					return false;  // If the ray faces away from the plane of the triangle, it won't ever hit
+				}
+				else if (NdotV > 0)
+				{
+					// BACK FACE towards us
+					if (!ignoreHitRecord && triangle.cullMode == TriangleCullMode::BackFaceCulling)
+					{
+						// Don't render the back face if we cull the back face (culling == strip/remove)
+						return false;
+					}
+					else if (ignoreHitRecord && triangle.cullMode == TriangleCullMode::FrontFaceCulling)
+					{
+						// Shadowrays are inverted so we invert the culling for shadowrays (ignorehitrecord true)
+						return false;
+					}
+				}
+				else
+				{
+					// FRONT FACE towards us
+					if (!ignoreHitRecord && triangle.cullMode == TriangleCullMode::FrontFaceCulling)
+					{
+						// Don't render the front face if we cull the front face
+						return false;
+					}
 
-				// Skip calculations depending on cull mode
-				if (triangle.cullMode == TriangleCullMode::BackFaceCulling && normalViewDot > 0)
-					return false;
+					if (ignoreHitRecord && triangle.cullMode == TriangleCullMode::BackFaceCulling)
+					{
+						// If it's a shadow ray (ignorehitrecord true), we invert the culling
+						return false;
+					}
+				}
 
-#pragma endregion
 
-				const Vector3 inBetween = triangle.v0 + triangle.v1 + triangle.v2;
-				Vector3 center = inBetween / 3.f;
-				Vector3 L = center - ray.origin;
-				float t = Vector3::Dot(L, triangle.normal) / Vector3::Dot(ray.direction, triangle.normal);
+				// Average of the 3 points to get the center of the triangle
+				const Vector3 center{ (triangle.v0 + triangle.v1 + triangle.v2) / 3.0f };
 
+				// Calculate distance hitPoint
+				const Vector3 l{ center - ray.origin };  // Point to the center of the 'plane'
+				const float t{ Vector3::Dot(l, normal) / NdotV };
+
+				// Check if T exceeds the boundaries set in the ray struct (tMin & tMax)
 				if (t < ray.min || t > ray.max)
-					return false;
+					return false;  // T is out of bounds
 
-				Vector3 p = ray.origin + t * ray.direction;
+				// We can calculate where point P is, by multiplying the direction, with the distance (t) found earlier.
+				// Add that to the ray's origin to find P
+				const Vector3 p{ ray.origin + (t * ray.direction) };  // Point on the plane
 
-#pragma region IsContainedWithinTriangle
-				Vector3 edgeA = triangle.v1 - triangle.v0;
-				Vector3 pointToSideA = p - triangle.v0;
 
-				if (Vector3::Dot(triangle.normal, Vector3::Cross(edgeA, pointToSideA)) < 0)
-					return false;
+				// Now we check wether the found point is inside or outside the triangle bounds
+				//const Vector3 pointToSide{ p - triangle.v0 };
 
-				Vector3 edgeB = triangle.v2 - triangle.v0;
-				Vector3 pointToSideB = p - triangle.v0;
+				if (Vector3::Dot(normal, Vector3::Cross(edgeA, p - triangle.v0)) < 0)
+					return false;  // Point is outside the triangle
 
-				if (Vector3::Dot(triangle.normal, Vector3::Cross(pointToSideB, edgeB)) < 0)
-					return false;
+				if (Vector3::Dot(normal, Vector3::Cross(edgeB, p - triangle.v1)) < 0)
+					return false;  // Point is outside the triangle
 
-				Vector3 edgeC = triangle.v1 - triangle.v2;
-				Vector3 pointToSideC = p - triangle.v2;
-
-				if (Vector3::Dot(triangle.normal, Vector3::Cross(pointToSideC, edgeC)) < 0)
-					return false;
-#pragma endregion
+				if (Vector3::Dot(normal, Vector3::Cross(edgeC, p - triangle.v2)) < 0)
+					return false;  // Point is outside the triangle
 
 				if (ignoreHitRecord)
 					return true;
 
-				hitRecord.origin = ray.origin + (t * ray.direction);
-				hitRecord.normal = triangle.normal;
 				hitRecord.didHit = true;
 				hitRecord.materialIndex = triangle.materialIndex;
+				hitRecord.origin = p;
+				hitRecord.normal = normal;
 				hitRecord.t = t;
 
 				return true;
+#pragma endregion
 			}
 			else
 			{
+#pragma region Mine
 				constexpr float EPSILON = 0.0000001f;
 
 				float normalViewDot = Vector3::Dot(triangle.normal, ray.direction);
@@ -214,6 +302,64 @@ namespace dae
 				}
 				else
 					return false;
+#pragma endregion
+//#pragma region Ward
+//				const Vector3 edge1{ triangle.v1 - triangle.v0 };
+//				const Vector3 edge2{ triangle.v2 - triangle.v0 };
+//
+//				const Vector3 h{ Vector3::Cross(ray.direction, edge2) };
+//				const float a{ Vector3::Dot(edge1, h) };
+//
+//				if (AreEqual(a, 0.0f))
+//					return false;
+//
+//				if (a < 0.0f)
+//				{
+//					// Backface hit
+//					if (!ignoreHitRecord && triangle.cullMode == TriangleCullMode::BackFaceCulling)
+//						// Remove the face if it's "culled" away
+//						return false;
+//					if (ignoreHitRecord && triangle.cullMode == TriangleCullMode::FrontFaceCulling)
+//						// Shadow rays (ignorehitrecord true) have inverted culling
+//						return false;
+//				}
+//				else if (a > 0.0f)
+//				{
+//					// Frontface hit
+//					if (!ignoreHitRecord && triangle.cullMode == TriangleCullMode::FrontFaceCulling)
+//						// Remove the face if it's "culled" away
+//						return false;
+//					if (ignoreHitRecord && triangle.cullMode == TriangleCullMode::BackFaceCulling)
+//						// Shadow rays (ignorehitrecord true) have inverted culling
+//						return false;
+//				}
+//
+//				const float f{ 1.0f / a };
+//				const Vector3 s{ ray.origin - triangle.v0 };
+//				const float u{ f * Vector3::Dot(s, h) };
+//
+//				if (u < 0.0f || u > 1.0f)
+//					return false;
+//
+//				const Vector3 q{ Vector3::Cross(s, edge1) };
+//				const float v{ f * Vector3::Dot(ray.direction, q) };
+//
+//				if (v < 0.0f || u + v > 1.0f)
+//					return false;
+//
+//				const float t{ f * Vector3::Dot(edge2, q) };
+//				if (t > ray.min && t < ray.max)
+//				{
+//					if (ignoreHitRecord) return true;
+//					hitRecord.didHit = true;
+//					hitRecord.materialIndex = triangle.materialIndex;
+//					hitRecord.origin = ray.origin + (t * ray.direction);
+//					hitRecord.normal = triangle.normal;
+//					hitRecord.t = t;
+//					return true;
+//				}
+//				return false;
+//#pragma endregion
 			}
 		}
 
@@ -288,7 +434,7 @@ namespace dae
 					{
 						return true;
 					}
-					
+
 
 					if (hitRecord.t < record.t && hasHit)
 					{

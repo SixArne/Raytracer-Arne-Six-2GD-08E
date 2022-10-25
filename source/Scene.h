@@ -68,7 +68,7 @@ namespace dae
 		unsigned char AddMaterial(Material* pMaterial);
 
 		// custom
-		bool m_UsingMoller{ false };
+		bool m_UsingMoller{ true };
 	};
 
 	//+++++++++++++++++++++++++++++++++++++++++
