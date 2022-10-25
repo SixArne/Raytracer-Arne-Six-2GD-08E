@@ -90,14 +90,6 @@ void Renderer::Render(Scene* pScene) const
 	}
 #endif
 
-	
-
-
-	/*for (int py{}; py < m_Height; ++py)
-	{
-
-	}*/
-
 	//@END
 	//Update SDL Surface
 	SDL_UpdateWindowSurface(m_pWindow);
@@ -169,9 +161,11 @@ void Renderer::PerPixel(Scene* pScene, uint32_t pixelIndex, float fov, float as,
 			// If a shadow needs to be rendered it skips it
 			if (m_CanRenderShadow)
 			{
-				Ray invLightRay = Ray{ offsetHitOrigin, LightUtils::GetDirectionToLight(light, offsetHitOrigin).Normalized(), 0.0001f, distanceToLight };
+				Ray invLightRay = Ray{ offsetHitOrigin, LightUtils::GetDirectionToLight(light, offsetHitOrigin).Normalized(), 0.001f, distanceToLight };
 				if (pScene->DoesHit(invLightRay))
+				{
 					continue;
+				}
 			}
 
 			// for every light

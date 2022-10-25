@@ -41,16 +41,17 @@ namespace dae
 			Combined
 		};
 
-		LightingMode m_CurrentLightingMode{LightingMode::Combined};
+		LightingMode m_CurrentLightingMode{ LightingMode::Combined };
 
 		SDL_Window* m_pWindow{};
 
 		SDL_Surface* m_pBuffer{};
 		uint32_t* m_pBufferPixels{};
 
-		bool m_CanRenderShadow{true};
+		bool m_CanRenderShadow{ true };
 
 		int m_Width{};
 		int m_Height{};
+		int m_HitCounter{};
 	};
 }

@@ -42,6 +42,10 @@ namespace dae
 		const std::vector<Light>& GetLights() const { return m_Lights; }
 		const std::vector<Material*> GetMaterials() const { return m_Materials; }
 
+		// custom
+		void EnableMoller(bool value) { m_UsingMoller = value; std::cout << "Moller :" << value << "\n"; };
+		bool IsMoller() { return m_UsingMoller; };
+
 	protected:
 		std::string	sceneName;
 
@@ -62,6 +66,9 @@ namespace dae
 		Light* AddPointLight(const Vector3& origin, float intensity, const ColorRGB& color);
 		Light* AddDirectionalLight(const Vector3& direction, float intensity, const ColorRGB& color);
 		unsigned char AddMaterial(Material* pMaterial);
+
+		// custom
+		bool m_UsingMoller{ false };
 	};
 
 	//+++++++++++++++++++++++++++++++++++++++++
