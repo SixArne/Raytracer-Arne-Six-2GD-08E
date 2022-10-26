@@ -389,7 +389,7 @@ namespace dae {
 	{
 		Scene::Update(pTimer);
 
-		// pMesh->RotateY(PI_DIV_4 * pTimer->GetTotal());
+		pMesh->RotateY(PI_DIV_4 * pTimer->GetTotal());
 
 		pMesh->UpdateTransforms();
 

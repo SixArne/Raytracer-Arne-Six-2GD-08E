@@ -155,7 +155,7 @@ namespace dae
 				float normalViewDot = Vector3::Dot(triangle.normal, ray.direction);
 
 				// if our ray is perpendicular to the normal it will never hit.
-				if (normalViewDot == 0)
+				if (std::abs(normalViewDot) < EPSILON)
 					return false;
 
 				// Skip calculations depending on cull mode
@@ -281,7 +281,7 @@ namespace dae
 					vertexCount = 0;
 					normalCount++;
 
-					bool hasHit = HitTest_Triangle(triangle, ray, hitRecord);
+					bool hasHit = HitTest_Triangle(triangle, ray, hitRecord, ignoreHitRecord);
 
 					if (hasHit && ignoreHitRecord)
 					{
