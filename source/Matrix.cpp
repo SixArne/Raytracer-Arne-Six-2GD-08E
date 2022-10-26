@@ -4,6 +4,9 @@
 
 #include "MathHelpers.h"
 #include <cmath>
+#include <immintrin.h>
+
+//#define USE_SIMD
 
 namespace dae {
 	Matrix::Matrix(const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis, const Vector3& t) :
@@ -34,11 +37,38 @@ namespace dae {
 
 	Vector3 Matrix::TransformVector(float x, float y, float z) const
 	{
+		#ifdef USE_SIMD
+		__m128 _xyz, _curr, _xm, _total{};
+
+		_xyz = _mm_set_ps(x, y, z, 0);
+
+		for (uint32_t i{}; i < 3; ++i)
+		{
+			_xm = _mm_set_ps(data[i].x, data[i].y, data[i].z, 0);
+			_curr = _mm_set1_ps(_xyz.m128_f32[3 - i]);
+
+			_total = _mm_add_ps(_total, _mm_mul_ps(_xm, _curr));
+		}
+
+		return Vector3{ _total.m128_f32[3], _total.m128_f32[2], _total.m128_f32[1] };
+		#endif
+		
+		const Vector4 d0{ data[0] * x };
+		const Vector4 d1{ data[1] * y };
+		const Vector4 d2{ data[2] * z };
+
 		return Vector3{
+			d0.x + d1.x + d2.x,
+			d0.y + d1.y + d2.y,
+			d0.z + d1.z + d2.z,
+		};
+
+
+		/*return Vector3{
 			data[0].x * x + data[1].x * y + data[2].x * z,
 			data[0].y * x + data[1].y * y + data[2].y * z,
 			data[0].z * x + data[1].z * y + data[2].z * z
-		};
+		};*/
 	}
 
 	Vector3 Matrix::TransformPoint(const Vector3& p) const
@@ -48,11 +78,40 @@ namespace dae {
 
 	Vector3 Matrix::TransformPoint(float x, float y, float z) const
 	{
+		#ifdef USE_SIMD
+		__m128 _xyz, _curr, _xm, _total{};
+
+		_xyz = _mm_set_ps(x, y, z, 0);
+
+		for (uint32_t i{}; i < 3; ++i)
+		{
+			_xm = _mm_set_ps(data[i].x, data[i].y, data[i].z, 0);
+			_curr = _mm_set1_ps(_xyz.m128_f32[3 - i]);
+
+			_total = _mm_add_ps(_total, _mm_mul_ps(_xm, _curr));
+		}
+
+		_xm = _mm_set_ps(data[3].x, data[3].y, data[3].z, 0);
+		_total = _mm_add_ps(_total, _xm);
+
+		return Vector3{ _total.m128_f32[3], _total.m128_f32[2], _total.m128_f32[1] };
+		#endif
+
+		const Vector4 d0{ data[0] * x };
+		const Vector4 d1{ data[1] * y };
+		const Vector4 d2{ data[2] * z };
+
 		return Vector3{
+			d0.x + d1.x + d2.x + data[3].x,
+			d0.y + d1.y + d2.y + data[3].y,
+			d0.z + d1.z + d2.z + data[3].z,
+		};
+
+		/*return Vector3{
 			data[0].x * x + data[1].x * y + data[2].x * z + data[3].x,
 			data[0].y * x + data[1].y * y + data[2].y * z + data[3].y,
 			data[0].z * x + data[1].z * y + data[2].z * z + data[3].z,
-		};
+		};*/
 	}
 
 	const Matrix& Matrix::Transpose()

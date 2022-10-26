@@ -4,6 +4,7 @@
 
 #include "Vector4.h"
 #include <cmath>
+#include <immintrin.h>
 
 namespace dae {
 	const Vector3 Vector3::UnitX = Vector3{ 1, 0, 0 };
@@ -19,6 +20,10 @@ namespace dae {
 
 	float Vector3::Magnitude() const
 	{
+		/*	__m128 v1{ _mm_set_ps(x,y,z,0) };
+			__m128 v2{ _mm_mul_ps(v1, v1) };
+
+			return sqrtf(v2.m128_f32[3] + v2.m128_f32[1] + v2.m128_f32[2]);*/
 		return sqrtf(x * x + y * y + z * z);
 	}
 
@@ -30,6 +35,7 @@ namespace dae {
 	float Vector3::Normalize()
 	{
 		const float m = Magnitude();
+
 		x /= m;
 		y /= m;
 		z /= m;

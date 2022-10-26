@@ -387,7 +387,7 @@ namespace dae {
 	{
 		Scene::Update(pTimer);
 
-		pMesh->RotateY(PI_DIV_4 * pTimer->GetTotal() / 4.f);
+		pMesh->RotateY((cos(pTimer->GetTotal()) + 1.f) / 2.f * PI_2);
 
 		pMesh->UpdateTransforms();
 	}

@@ -75,8 +75,6 @@ int main(int argc, char* args[])
 					pRenderer->CycleLightingMode();
 				if (e.key.keysym.scancode == SDL_SCANCODE_F6)
 					pTimer->StartBenchmark(10);
-				if (e.key.keysym.scancode == SDL_SCANCODE_M)
-					pScene->EnableMoller(!pScene->IsMoller());
 				break;
 			}
 		}

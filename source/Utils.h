@@ -260,9 +260,6 @@ namespace dae
 			int normalCounter{};
 			HitRecord record{};
 
-			if (mesh.indices.size() % 3 != 0)
-				throw std::runtime_error("Mesh no multiple of 3");
-
 			int vertexCount{};
 			int normalCount{};
 

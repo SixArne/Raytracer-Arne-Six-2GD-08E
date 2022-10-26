@@ -68,29 +68,6 @@ namespace dae
 			//Keyboard Input
 			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
 
-			if (pKeyboardState[SDL_SCANCODE_O])
-			{
-				fovAngle -= degreesPerSecond * deltaTime;
-
-				if (fovAngle <= 0.f)
-				{
-					fovAngle = 0.f;
-				}
-
-				fov = tanf(fovAngle * TO_RADIANS / 2.f);
-			}
-			else if (pKeyboardState[SDL_SCANCODE_P])
-			{
-				fovAngle += degreesPerSecond * deltaTime;
-
-				if (fovAngle >= 140.f)
-				{
-					fovAngle = 140.f;
-				}
-
-				fov = tanf(fovAngle * TO_RADIANS / 2.f);
-			}
-
 			// Movement
 			if (pKeyboardState[SDL_SCANCODE_W])
 			{
@@ -110,12 +87,6 @@ namespace dae
 			if (pKeyboardState[SDL_SCANCODE_D])
 			{
 				origin += right * moveSpeedPerSecond * deltaTime;
-			}
-
-			// Debug
-			if (pKeyboardState[SDL_SCANCODE_F])
-			{
-				std::cout << "FOV: " << fovAngle << "\n";
 			}
 
 			//Mouse Input

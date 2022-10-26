@@ -133,7 +133,7 @@ void Renderer::PerPixel(Scene* pScene, uint32_t pixelIndex, float fov, float as,
 	const float rx = px + 0.5f;
 	const float ry = py + 0.5f;
 
-	const float cx = ((2 * (rx)) / static_cast<float>(m_Width) - 1) * as * camera.fov;
+	const float cx = ((2 * (rx)) / static_cast<float>(m_Width) - 1) * (static_cast<float>(m_Width) / static_cast<float>(m_Height)) * camera.fov;
 	const float cy = (1 - (2 * (ry)) / static_cast<float>(m_Height)) * camera.fov;
 
 	const Vector3 rayDirection = camera.cameraToWorld.TransformVector(Vector3(cx, cy, 1.f)).Normalized();
@@ -157,6 +157,14 @@ void Renderer::PerPixel(Scene* pScene, uint32_t pixelIndex, float fov, float as,
 			Vector3 directionToLight = LightUtils::GetDirectionToLight(light, closestHit.origin);
 			const float distanceToLight = directionToLight.Normalize();
 
+			// Lambert shading
+			const float lambertCosine = Vector3::Dot(closestHit.normal, directionToLight);
+
+			if (lambertCosine <= 0 && m_CurrentLightingMode == LightingMode::Combined
+				|| lambertCosine <= 0 && m_CurrentLightingMode == LightingMode::ObservedArea)
+			{
+				continue;
+			}
 
 			// If a shadow needs to be rendered it skips it
 			if (m_CanRenderShadow)
@@ -170,15 +178,11 @@ void Renderer::PerPixel(Scene* pScene, uint32_t pixelIndex, float fov, float as,
 
 			// for every light
 			ColorRGB BRDFrgb = materials[closestHit.materialIndex]->Shade(closestHit, directionToLight, -rayDirection);
-
-			// Lambert shading
-			const float lambertCosine = Vector3::Dot(closestHit.normal, directionToLight);
+			
 
 			switch (m_CurrentLightingMode)
 			{
 			case LightingMode::ObservedArea:
-				if (lambertCosine <= 0)
-					continue;
 				finalColor += ColorRGB{ 1.f,1.f,1.f } * lambertCosine;
 				break;
 			case LightingMode::Radiance:
@@ -188,8 +192,6 @@ void Renderer::PerPixel(Scene* pScene, uint32_t pixelIndex, float fov, float as,
 				finalColor += BRDFrgb;
 				break;
 			case LightingMode::Combined:
-				if (lambertCosine <= 0)
-					continue;
 				finalColor += LightUtils::GetRadiance(light, closestHit.origin) * BRDFrgb * lambertCosine;
 				break;
 			}

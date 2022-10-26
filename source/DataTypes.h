@@ -163,7 +163,7 @@ namespace dae
 			transformedPositions.clear();
 			transformedPositions.reserve(positions.size());
 
-			for (auto position : positions)
+			for (const auto& position : positions)
 			{
 				Vector3 result = finalTransform.TransformPoint(position);
 				transformedPositions.emplace_back(result);
@@ -171,7 +171,7 @@ namespace dae
 
 			UpdateTransformedAABB(finalTransform);
 
-			for (auto normal : normals)
+			for (const auto& normal : normals)
 			{
 				Vector3 result = rotationTransform.TransformVector(normal);
 				transformedNormals.emplace_back(result);
