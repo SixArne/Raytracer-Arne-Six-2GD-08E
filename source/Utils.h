@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <complex>
 #include <fstream>
 #include "Math.h"
 #include "DataTypes.h"
@@ -72,6 +73,7 @@ namespace dae
 				hitRecord.materialIndex = plane.materialIndex;
 				hitRecord.normal = plane.normal;
 				hitRecord.origin = ray.origin + t * ray.direction;
+
 				return true;
 			}
 
