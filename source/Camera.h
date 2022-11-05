@@ -98,13 +98,29 @@ namespace dae
 				if (!(mouseState & SDL_BUTTON_LMASK) != 0)
 				{
 					totalYaw += mouseX;
-					//totalPitch += mouseY;
-					//std::cout << totalPitch << "\n";
 					totalPitch = Clamp(-60.f, 30.f, totalPitch + mouseY);
-
+					
 					// Recalculate view matrix
 					CalculateCameraToWorld();
 				}
+			}
+
+			if ((mouseState & SDL_BUTTON_LMASK) != 0 && (mouseState & SDL_BUTTON_RMASK) != 0)
+			{
+				origin += up * moveSpeedPerSecond * deltaTime * mouseY;
+			}
+			else if ((mouseState & SDL_BUTTON_LMASK) != 0)
+			{
+				if (mouseY > 0)
+				{
+					origin -= forward * moveSpeedPerSecond * deltaTime;
+				}
+				else if (mouseY < 0)
+				{
+					origin += forward * moveSpeedPerSecond * deltaTime;
+				}
+
+				totalYaw += mouseX;
 			}
 		}
 	};
