@@ -357,7 +357,7 @@ namespace dae {
 		m_Camera.fovAngle = 45.0f;
 
 		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, 0.57f, 0.57f }, 1.f));
-		const auto matLambert_Gray = AddMaterial(new Material_Lambert(colors::Gray, 1.f));
+		const auto matLambert_Gray = AddMaterial(new Material_Lambert(colors::White, 1.f));
 
 		//Plane
 		AddPlane({ -5.f, 0.f, 0.f }, { 1.f, 0.f,0.f }, matLambert_GrayBlue);
